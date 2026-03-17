@@ -620,7 +620,7 @@ export default function Min3Game2() {
         </div>
 
         {/* Color Buttons */}
-        <div className="grid grid-cols-3 gap-5 justify-around my-4">
+        <div className="grid grid-cols-3 gap-5 justify-around my-4 px-3">
           {colors.map((c) => (
             <button
               key={c}
@@ -671,7 +671,7 @@ export default function Min3Game2() {
         </div>
 
         {/* Big/Small */}
-        <div className="flex my-6">
+        <div className="flex my-6 px-3">
           {sizeOptions.map((bs) => (
             <button
               key={bs}
