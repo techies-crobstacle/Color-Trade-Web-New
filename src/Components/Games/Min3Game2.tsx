@@ -679,7 +679,7 @@ export default function Min3Game2() {
               disabled={disabled}
               className={clsx(
                 "w-1/2 py-3 text-white transition",
-                bs === "big" ? "bg-orange-500" : "bg-blue-500",
+                bs === "big" ? "bg-orange-500 rounded-l-3xl" : "bg-blue-500 rounded-r-3xl",
                 selected.type === "size" &&
                   selected.value === bs &&
                   "ring-4 ring-yellow-400 scale-105",
@@ -707,7 +707,7 @@ export default function Min3Game2() {
         />
       </div>
 
-      <div className="mt-8 border-t border-green-500 pt-4">
+      <div className="mt-8 border-t border-[#c4933f] pt-4">
         <GameHistory3 />
       </div>
 
