@@ -240,6 +240,7 @@ interface GameData {
 }
 
 interface LastGameInfo {
+  scheduledAt: string;
   period: string;
   winningNumber: number | null;
   winningColor: string[];

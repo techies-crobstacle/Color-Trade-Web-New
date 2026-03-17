@@ -199,10 +199,29 @@ export default function Min3Game3() {
         )
         .filter((g) => g.result?.number != null)
         .slice(0, 4);
-
-      setWinningHistory(last4);
-      if (last4.length > 0) {
-        lastSeenPeriodRef.current = last4[0].period;
+      
+      // If we have real-time data, prioritize it over API data
+      const last5m = lastGames["5m_game"];
+      if (last5m?.winningNumber != null && last5m.period) {
+        const realtimeItem: HistoryItem = {
+          period: last5m.period,
+          scheduledAt: last5m.scheduledAt || new Date().toISOString(),
+          result: {
+            number: last5m.winningNumber,
+            color: last5m.winningColor || [],
+            size: last5m.winningSize || null,
+          },
+        };
+        // Replace any duplicate period with real-time data
+        const filteredLast4 = last4.filter(item => item.period !== realtimeItem.period);
+        const finalHistory = [realtimeItem, ...filteredLast4].slice(0, 4);
+        setWinningHistory(finalHistory);
+        lastSeenPeriodRef.current = realtimeItem.period;
+      } else {
+        setWinningHistory(last4);
+        if (last4.length > 0) {
+          lastSeenPeriodRef.current = last4[0].period;
+        }
       }
     } catch {
       // silently ignore fetch errors
@@ -251,19 +270,26 @@ export default function Min3Game3() {
     const last5m = lastGames["5m_game"];
     if (
       last5m?.winningNumber != null &&
-      last5m.period !== lastSeenPeriodRef.current
+      last5m.period &&
+      last5m.period !== lastSeenPeriodRef.current &&
+      typeof last5m.winningNumber === 'number' // Ensure valid number
     ) {
       lastSeenPeriodRef.current = last5m.period;
       const newItem: HistoryItem = {
         period: last5m.period,
-        scheduledAt: new Date().toISOString(),
+        scheduledAt: last5m.scheduledAt || new Date().toISOString(),
         result: {
           number: last5m.winningNumber,
-          color: last5m.winningColor,
-          size: last5m.winningSize,
+          color: last5m.winningColor || [],
+          size: last5m.winningSize || null,
         },
       };
-      setWinningHistory((prev) => [newItem, ...prev].slice(0, 4));
+      // Check if this item already exists in current history to avoid duplicates
+      setWinningHistory((prev) => {
+        const exists = prev.some(item => item.period === newItem.period);
+        if (exists) return prev;
+        return [newItem, ...prev].slice(0, 4);
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastGames]);
@@ -289,16 +315,52 @@ export default function Min3Game3() {
   // userBetResults is a separate state never overwritten by current:rounds, so no race condition.
   useEffect(() => {
     if (!userBetResults) return;
+    
+    // Get already shown periods from localStorage
+    const shownPeriodsKey = 'shownResultPeriods_5m';
+    const shownPeriods = JSON.parse(localStorage.getItem(shownPeriodsKey) || '[]');
+    
     const entry = Object.values(userBetResults).find(
-      (r) => r.period.startsWith("5m-") && r.result && resultToastShownForPeriodRef.current !== r.period
+      (r) => r.period.startsWith("5m-") && r.result && 
+      !shownPeriods.includes(r.period) && // Check localStorage
+      (!resultPopup || resultPopup.period !== r.period) // Don't show if already showing for this period
     );
     if (!entry) return;
+    
+    // Time-based validation: Don't show popups for rounds that ended more than 10 seconds ago
+    // This prevents showing old popups when switching tabs after rounds have ended
+    if (game && entry.period !== game.period) {
+      // Check if this is from a previous round that's already ended
+      const entryTime = entry.period.split('-')[1]; // Extract timestamp from period
+      const currentTime = game.period.split('-')[1];
+      if (entryTime && currentTime && entryTime !== currentTime) {
+        // Additional check: ensure we're not showing results for very old rounds
+        const entryTimestamp = new Date(entryTime.replace(/(....)(..)(..)(..)(..)/, '$1-$2-$3T$4:$5:00')).getTime();
+        const currentTimestamp = Date.now();
+        const timeDifference = currentTimestamp - entryTimestamp;
+        
+        // If the round ended more than 10 minutes ago (2 rounds), don't show popup
+        if (timeDifference > 10 * 60 * 1000) {
+          const updatedShownPeriods = [...shownPeriods, entry.period];
+          localStorage.setItem(shownPeriodsKey, JSON.stringify(updatedShownPeriods));
+          return;
+        }
+      }
+    }
+    
+    // Mark this period as shown in localStorage
+    const updatedShownPeriods = [...shownPeriods, entry.period];
+    // Keep only last 10 periods to prevent localStorage bloat
+    if (updatedShownPeriods.length > 10) {
+      updatedShownPeriods.splice(0, updatedShownPeriods.length - 10);
+    }
+    localStorage.setItem(shownPeriodsKey, JSON.stringify(updatedShownPeriods));
+    resultToastShownForPeriodRef.current = entry.period;
     const info = lastGames["5m_game"];
     const winningNumber = entry.winningNumber ?? info?.winningNumber ?? null;
     const winningColor = entry.winningColor?.length ? entry.winningColor : (info?.winningColor ?? []);
     const winningSize = entry.winningSize ?? info?.winningSize ?? null;
     if (winningNumber == null) return;
-    resultToastShownForPeriodRef.current = entry.period;
     setResultPopup({
       period: entry.period,
       number: winningNumber,
@@ -308,9 +370,11 @@ export default function Min3Game3() {
       winnings: entry.winnings ?? 0,
     });
     if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
-    popupTimerRef.current = setTimeout(() => setResultPopup(null), 5000);
+    popupTimerRef.current = setTimeout(() => {
+      setResultPopup(null);
+    }, 5000);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userBetResults, lastGames]);
+  }, [userBetResults, lastGames, resultPopup]);
 
   useEffect(() => {
     function updateTimer() {
@@ -338,9 +402,15 @@ export default function Min3Game3() {
     const interval = setInterval(updateTimer, 1000);
     return () => {
       clearInterval(interval);
-      if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
     };
   }, [game, isConnected, socket]);
+
+  // Cleanup popup timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isConnected) return;
@@ -669,7 +739,7 @@ export default function Min3Game3() {
                   </svg>
                 </div>
                 <h2 className="text-white text-2xl font-extrabold tracking-wide drop-shadow">
-                  {resultPopup.outcome === "won" ? "Congratulations!" : resultPopup.outcome === "lost" ? "Better Luck Next Time" : "Lottery Results"}
+                  {resultPopup.outcome === "won" ? "You won this round" : resultPopup.outcome === "lost" ? "You lost this round" : "Lottery Results"}
                 </h2>
                 {/* win/loss amount */}
                 {resultPopup.outcome === "won" && resultPopup.winnings > 0 && (
