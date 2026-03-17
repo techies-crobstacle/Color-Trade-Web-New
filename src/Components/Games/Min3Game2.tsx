@@ -343,25 +343,15 @@ export default function Min3Game2() {
     );
     if (!entry) return;
     
-    // Only prevent VERY old popups (more than 15 minutes old)
-    // This ensures admin-selected results still show even with slight delays
-    const entryTime = entry.period.split('-')[1]; // Extract timestamp from period
-    if (entryTime) {
-      try {
-        const entryTimestamp = new Date(entryTime.replace(/(....)(..)(..)(..)(..)/, '$1-$2-$3T$4:$5:00')).getTime();
-        const currentTimestamp = Date.now();
-        const timeDifference = currentTimestamp - entryTimestamp;
-        
-        // Only block popups older than 15 minutes (to allow admin processing time)
-        if (timeDifference > 15 * 60 * 1000) {
-          const updatedShownPeriods = [...shownPeriods, entry.period];
-          localStorage.setItem(shownPeriodsKey, JSON.stringify(updatedShownPeriods));
-          return;
-        }
-      } catch (e) {
-        // If timestamp parsing fails, still show the popup (safer approach)
-        console.warn('Failed to parse timestamp for period:', entry.period);
-      }
+    // STRICT VALIDATION: Only show popup if it's for the current active round
+    // This prevents showing results for previous rounds when switching tabs
+    const currentGame = gameRef.current;
+    if (currentGame && entry.period !== currentGame.period) {
+      // This result is for a previous round that has ended
+      // Mark it as shown to prevent future attempts
+      const updatedShownPeriods = [...shownPeriods, entry.period];
+      localStorage.setItem(shownPeriodsKey, JSON.stringify(updatedShownPeriods));
+      return;
     }
     
     // Mark this period as shown in localStorage
