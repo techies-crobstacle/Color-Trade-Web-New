@@ -4,7 +4,6 @@ import Image from "next/image";
 import Min1 from "./Games/Min3Game1";
 import Min3 from "./Games/Min3Game2";
 import Min5 from "./Games/Min3Game3";
-import Min10 from "./Games/Min3Game4";
 
 const Carousal = () => {
   const [activeTab, setActiveTab] = useState("1Min");
@@ -13,7 +12,7 @@ const Carousal = () => {
     { id: "1Min", label: "1 Min", img: "/clock.png" },
     { id: "3Min", label: "3 Min", img: "/clock.png" },
     { id: "5Min", label: "5 Min", img: "/clock.png" },
-    { id: "10Min", label: "10 Min", img: "/clock.png" },
+    
   ];
 
   const renderContent = () => {
@@ -37,12 +36,7 @@ const Carousal = () => {
             <Min5 />
           </div>
         );
-      case "10Min":
-        return (
-          <div>
-            <Min10 />
-          </div>
-        );
+      
       default:
         return null;
     }

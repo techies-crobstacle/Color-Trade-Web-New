@@ -2,7 +2,7 @@
 
 import useRequireAuth from '@/hooks/useRequireAuth';
 import TransactionTable from '@/Components/AdminPanelComponents/TransactionScreen';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useLayout } from "@/contexts/LayoutContext";
 import {
   User,
@@ -53,9 +53,8 @@ const SidebarItem = ({
   </button>
 );
 
-export default function DashboardPage() {
-  useRequireAuth();
-
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function DashboardContent() {
   const { setShowHeaderFooter } = useLayout();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -154,3 +153,23 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default function DashboardPage() {
+  useRequireAuth();
+
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+       
+
+

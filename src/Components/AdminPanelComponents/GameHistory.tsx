@@ -347,8 +347,14 @@ export default function GameHistory() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-sm text-gray-900">{scheduled.date}</div>
-                        <div className="text-xs text-gray-500">{scheduled.time}</div>
+                        {typeof scheduled === "string" ? (
+                          <span className="text-gray-400 text-sm">{scheduled}</span>
+                        ) : (
+                          <>
+                            <div className="text-sm text-gray-900">{scheduled.date}</div>
+                            <div className="text-xs text-gray-500">{scheduled.time}</div>
+                          </>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <button
