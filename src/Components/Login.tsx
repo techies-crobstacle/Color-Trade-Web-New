@@ -281,8 +281,12 @@ export default function Login() {
 
       setErrorMessage("");
       localStorage.setItem("token", data.data.token);
-      // Also write to cookie so middleware can read it server-side
-      document.cookie = `token=${data.data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      
+      // Set cookie with production-friendly settings
+      const isSecure = window.location.protocol === 'https:';
+      const cookieString = `token=${data.data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+      document.cookie = cookieString;
+      
       onTokenChange(data.data.token);
       toast.success(data.message || "Login Successful");
 
