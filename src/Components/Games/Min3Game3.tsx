@@ -609,14 +609,14 @@ export default function Min3Game3() {
         </div>
 
         {/* Number Grid */}
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 md:gap-4 px-2">
           {numbers.map(n => (
             <button
               key={n}
               onClick={() => handleSelect("number", n)}
               disabled={disabled}
               className={clsx(
-                "h-14 w-14 md:h-16 md:w-16 rounded-full overflow-hidden transition flex items-center justify-center",
+                "aspect-square w-full max-w-16 mx-auto rounded-full overflow-hidden transition flex items-center justify-center",
                 selected.type === "number" && selected.value === n && "ring-4 ring-yellow-400 scale-105",
                 disabled && "opacity-60 cursor-not-allowed"
               )}
