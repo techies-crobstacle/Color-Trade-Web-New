@@ -437,7 +437,7 @@ export default function Min3Game1() {
     return () => clearInterval(syncInterval);
   }, [isConnected, socket]);
 
-  const disabled = timer <= 30;
+  const disabled = timer <= 15;
   const hasSelection = selected.type !== null && selected.value !== null;
 
   const placeBet = async (betAmount: number) => {
@@ -538,7 +538,7 @@ export default function Min3Game1() {
   return (
     <>
       <div className="relative">
-        {/* Overlay for last 30 seconds */}
+        {/* Overlay for last 15 seconds */}
         {disabled && (
           <div className="absolute inset-0 bg-black bg-opacity-70 rounded-lg z-[55] flex items-center justify-center pointer-events-none">
             {timer <= 5 && timer > 0 && (
@@ -553,23 +553,23 @@ export default function Min3Game1() {
         )}
 
         {/* Timer & Info */}
-        <div className="flex justify-between items-center px-3 py-4 bg-gradient-to-b from-[#FAE59F] to-[#C4933F] rounded-lg">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center space-x-1 border border-[#8f5206] rounded-3xl px-3 py-1">
+        <div className="flex justify-between items-center px-2 2xs:px-3 py-3 2xs:py-4 bg-gradient-to-b from-[#FAE59F] to-[#C4933F] rounded-lg">
+          <div className="flex flex-col gap-1 2xs:gap-2">
+            <div className="flex items-center space-x-1 border border-[#8f5206] rounded-3xl px-2 2xs:px-3 py-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 36 36"
-                className="w-5 h-5 text-[#8f5206]"
+                className="w-4 2xs:w-5 h-4 2xs:h-5 text-[#8f5206]"
                 fill="currentColor"
               >
                 <path d="M23.67 3H12.33C6.66 3 5.25 4.515 5.25 10.56V27.45C5.25 31.44 7.44 32.385 10.095 29.535L10.11 29.52C11.34 28.215 13.215 28.32 14.28 29.745L15.795 31.77C17.01 33.375 18.975 33.375 20.19 31.77L21.705 29.745C22.785 28.305 24.66 28.2 25.89 29.52C28.56 32.37 30.735 31.425 30.735 27.435V10.56C30.75 4.515 29.34 3 23.67 3ZM11.67 18C10.845 18 10.17 17.325 10.17 16.5C10.17 15.675 10.845 15 11.67 15C12.495 15 13.17 15.675 13.17 16.5C13.17 17.325 12.495 18 11.67 18ZM11.67 12C10.845 12 10.17 11.325 10.17 10.5C10.17 9.675 10.845 9 11.67 9C12.495 9 13.17 9.675 13.17 10.5C13.17 11.325 12.495 12 11.67 12ZM24.345 17.625H16.095C15.48 17.625 14.97 17.115 14.97 16.5C14.97 15.885 15.48 15.375 16.095 15.375H24.345C24.96 15.375 25.47 15.885 25.47 16.5C25.47 17.115 24.96 17.625 24.345 17.625ZM24.345 11.625H16.095C15.48 11.625 14.97 11.115 14.97 10.5C14.97 9.885 15.48 9.375 16.095 9.375H24.345C24.96 9.375 25.47 9.885 25.47 10.5C25.47 11.115 24.96 11.625 24.345 11.625Z" />
               </svg>
 
-              <button className="font-light text-[#8f5206] text-sm">
+              <button className="font-light text-[#8f5206] text-xs 2xs:text-sm">
                 How to play
               </button>
             </div>
-            <h1 className="font-light text-[#8f5206] ml-1">Win Go 1 Min</h1>
+            <h1 className="font-light text-[#8f5206] ml-1 text-sm 2xs:text-base">Win Go 1 Min</h1>
 
             {/* Winning number Images Last Four */}
             <div className="flex gap-1 ml-1">
@@ -577,7 +577,7 @@ export default function Min3Game1() {
                 winningHistory.map((g, idx) => (
                   <div
                     key={idx}
-                    className="md:h-8 md:w-8 w-7 h-7 rounded-full overflow-hidden border border-white"
+                    className="w-6 h-6 2xs:w-7 2xs:h-7 md:h-8 md:w-8 rounded-full overflow-hidden border border-white"
                   >
                     <Image
                       src={`/No_images/${g.result?.number}.png`}
@@ -595,9 +595,9 @@ export default function Min3Game1() {
           </div>
 
           <div className="flex flex-col items-center gap-y-1">
-            <h2 className="text-sm text-[#8f5206]">{currentPeriod}</h2>
-            <h1 className="text-[#8f5206] font-semibold">Time Remaining</h1>
-            <div className="flex items-center space-x-1">
+            <h2 className="text-xs 2xs:text-sm text-[#8f5206] text-center leading-tight break-all max-w-[100px] 2xs:max-w-none">{currentPeriod}</h2>
+            <h1 className="text-[#8f5206] font-semibold text-xs 2xs:text-sm text-center leading-tight">Time Remaining</h1>
+            <div className="flex items-center space-x-0.5 2xs:space-x-1">
               {(() => {
                 const minutes = Math.floor(timer / 60);
                 const seconds = timer % 60;
@@ -606,9 +606,9 @@ export default function Min3Game1() {
                   <div
                     key={i}
                     className={clsx(
-                      "flex items-center justify-center h-8 w-7 font-semibold text-white ",
+                      "flex items-center justify-center h-6 w-5 2xs:h-8 2xs:w-7 text-sm 2xs:text-base font-semibold text-white",
                       c === ":"
-                        ? "bg-transparent text-black text-xl"
+                        ? "bg-transparent text-black text-lg 2xs:text-xl"
                         : "bg-[#333332] text-white",
                     )}
                   >
@@ -646,14 +646,14 @@ export default function Min3Game1() {
         </div>
 
         {/* Number Grid */}
-        <div className="grid grid-cols-5 gap-2 xs:gap-2 sm:gap-3 md:gap-4 px-1 xs:px-2">
+        <div className="grid grid-cols-5 gap-1 2xs:gap-2 xs:gap-2 sm:gap-3 md:gap-4 px-1 xs:px-2">
           {numbers.map((n) => (
             <button
               key={n}
               onClick={() => handleSelect("number", n)}
               disabled={disabled}
               className={clsx(
-                "aspect-square w-full max-w-12 xs:max-w-14 sm:max-w-16 md:max-w-18 mx-auto rounded-full overflow-hidden transition flex items-center justify-center",
+                "aspect-square w-full max-w-10 2xs:max-w-12 xs:max-w-14 sm:max-w-16 md:max-w-18 mx-auto rounded-full overflow-hidden transition flex items-center justify-center",
                 selected.type === "number" &&
                   selected.value === n &&
                   "ring-4 ring-yellow-400 scale-105",

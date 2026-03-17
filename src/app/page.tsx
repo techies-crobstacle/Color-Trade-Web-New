@@ -283,7 +283,7 @@ export default function Home() {
             >
               <div className="bg-gradient-to-r from-green-600 rounded-t-xl p-3 sm:p-4 relative min-h-[90px] sm:min-h-[100px]">
                 <h3 className="text-white text-lg sm:text-xl font-bold mb-1 sm:mb-2">
-                  Game 1
+                  1 Min
                 </h3>
                 <p className="text-gray-200 font-semibold text-xs sm:text-sm md:text-base w-[55%] sm:w-[60%] md:w-auto pr-2">
                   Guess Number, Green, Purple, Red to Win
@@ -307,11 +307,11 @@ export default function Home() {
                       className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0"
                     />
                     <h4 className="text-sm sm:text-base font-semibold truncate">
-                      Name of Person
+                      Mem***VEI
                     </h4>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-800 font-semibold whitespace-nowrap">
-                    Won Rs 11294
+                    Won Rs 2094
                   </p>
                 </div>
               </div>
@@ -324,7 +324,7 @@ export default function Home() {
             >
               <div className="bg-gradient-to-r from-green-600 rounded-t-xl p-3 sm:p-4 relative min-h-[90px] sm:min-h-[100px]">
                 <h3 className="text-white text-lg sm:text-xl font-bold mb-1 sm:mb-2">
-                  Game 2
+                  3 Min
                 </h3>
                 <p className="text-gray-200 font-semibold text-xs sm:text-sm md:text-base w-[55%] sm:w-[60%] md:w-auto pr-2">
                   Guess Number, Green, Purple, Red to Win
@@ -348,11 +348,11 @@ export default function Home() {
                       className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0"
                     />
                     <h4 className="text-sm sm:text-base font-semibold truncate">
-                      Name of Person
+                      Mem***VEI
                     </h4>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-800 font-semibold whitespace-nowrap">
-                    Won Rs 11294
+                    Won Rs 3224
                   </p>
                 </div>
               </div>
@@ -365,7 +365,7 @@ export default function Home() {
             >
               <div className="bg-gradient-to-r from-green-600 rounded-t-xl p-3 sm:p-4 relative min-h-[90px] sm:min-h-[100px]">
                 <h3 className="text-white text-lg sm:text-xl font-bold mb-1 sm:mb-2">
-                  Game 3
+                  5 Min
                 </h3>
                 <p className="text-gray-200 font-semibold text-xs sm:text-sm md:text-base w-[55%] sm:w-[60%] md:w-auto pr-2">
                   Guess Number, Green, Purple, Red to Win
@@ -389,7 +389,7 @@ export default function Home() {
                       className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0"
                     />
                     <h4 className="text-sm sm:text-base font-semibold truncate">
-                      Name of Person
+                      Mem***HCU
                     </h4>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-800 font-semibold whitespace-nowrap">
@@ -400,7 +400,7 @@ export default function Home() {
             </div>
 
             {/* Game 4 */}
-            <div
+            {/* <div
               onClick={() => handleGameClick("/game4")}
               className="flex-1 cursor-pointer"
             >
@@ -438,7 +438,7 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 

@@ -75,9 +75,9 @@ import React from 'react'
 export default function page() {
 
   const tabs = [
-    { id: "3MinGame1", label: "Game 1", route: "/game1" },
-    { id: "3MinGame2", label: "Game 2", route: "/game2" },
-    { id: "3MinGame3", label: "Game 3", route: "/game3" },
+    { id: "3MinGame1", label: "1 Min", route: "/game1" },
+    { id: "3MinGame2", label: "3 Min", route: "/game2" },
+    { id: "3MinGame3", label: "5 Min", route: "/game3" },
     // { id: "3MinGame4", label: "Game 4", route: "/game4" },
   ];
 
