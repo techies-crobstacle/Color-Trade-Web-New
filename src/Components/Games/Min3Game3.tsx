@@ -329,7 +329,8 @@ export default function Min3Game3() {
     
     // STRICT VALIDATION: Only show popup if it's for the current active round
     // This prevents showing results for previous rounds when switching tabs
-    if (game && entry.period !== game.period) {
+    const currentRealTimePeriod = getCurrentPeriodId();
+    if (entry.period !== currentRealTimePeriod) {
       // This result is for a previous round that has ended
       // Mark it as shown to prevent future attempts
       const updatedShownPeriods = [...shownPeriods, entry.period];
