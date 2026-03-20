@@ -9,7 +9,7 @@
 //     type: "color" | "number" | "size" | null;
 //     value: string | number | null;
 //   };
-//   gamePeriod: string; 
+//   gamePeriod: string;
 //   disabled?: boolean;
 // }
 
@@ -34,7 +34,7 @@
 
 //   const getBetDisplayText = () => {
 //     if (!selectedBet.type || selectedBet.value === null) return "No selection";
-    
+
 //     if (selectedBet.type === "color") {
 //       return `Color: ${selectedBet.value}`;
 //     } else if (selectedBet.type === "number") {
@@ -176,9 +176,24 @@ export default function PlaceBetModel({
 
   const amounts = [10, 50, 100, 500, 1000];
   const multipliers = [1, 2, 5, 10, 50];
+  const minMultiplier = 1;
+  const maxMultiplier = 100;
 
   const totalBet = selectedAmount * selectedMultiplier;
   const hasInsufficientBalance = balance !== null && totalBet > balance;
+
+  // Multiplier increment/decrement functions
+  const handleIncrementMultiplier = () => {
+    if (selectedMultiplier < maxMultiplier) {
+      setSelectedMultiplier(selectedMultiplier + 1);
+    }
+  };
+
+  const handleDecrementMultiplier = () => {
+    if (selectedMultiplier > minMultiplier) {
+      setSelectedMultiplier(selectedMultiplier - 1);
+    }
+  };
 
   // Bet is not allowed if:
   // - explicitly disabled (round closing)
@@ -258,12 +273,13 @@ export default function PlaceBetModel({
         </div>
 
         <div className="p-4 sm:p-6 bg-[#333332]">
-
           {/* Balance + connection status row */}
           <div className="flex justify-between items-center mb-4">
             <span className="text-gray-400 text-xs sm:text-sm">
               Your Balance:
-              <span className={`ml-1 font-bold ${hasInsufficientBalance ? "text-red-400" : "text-green-400"}`}>
+              <span
+                className={`ml-1 font-bold ${hasInsufficientBalance ? "text-red-400" : "text-green-400"}`}
+              >
                 {balance !== null ? `₹${balance.toFixed(2)}` : "Loading..."}
               </span>
             </span>
@@ -317,9 +333,61 @@ export default function PlaceBetModel({
 
           {/* Multiplier Selection */}
           <div className="mb-5 sm:mb-6">
-            <h3 className="text-white font-semibold mb-2 sm:mb-3 text-sm sm:text-base">
-              Select Multiplier
-            </h3>
+            <div className="flex flex-row justify-between items-center mb-1">
+              <div>
+                <h3 className="text-white font-semibold mb-2 sm:mb-3 text-sm sm:text-base">
+                  Select Multiplier
+                </h3>
+              </div>
+              {/* Multiplier Counter */}
+              <div className="flex items-center justify-center mb-3">
+                <button
+                  onClick={handleDecrementMultiplier}
+                  disabled={
+                    selectedMultiplier <= minMultiplier ||
+                    disabled ||
+                    isSubmitting
+                  }
+                  className={`w-9 h-9 rounded-l-lg font-bold text-xl transition-all duration-200 ${
+                    selectedMultiplier <= minMultiplier ||
+                    disabled ||
+                    isSubmitting
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-[#eed289] text-black hover:hover:bg-[#d4b24a] active:scale-95"
+                  }`}
+                >
+                  -
+                </button>
+
+                <div className="bg-black px-8 py-1 min-w-[80px] text-center border-gray-600">
+                  <span className="text-white font-bold text-lg">
+                    {selectedMultiplier}
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleIncrementMultiplier}
+                  disabled={
+                    selectedMultiplier >= maxMultiplier ||
+                    disabled ||
+                    isSubmitting
+                  }
+                  className={`w-9 h-9 rounded-r-lg font-bold text-xl transition-all duration-200 ${
+                    selectedMultiplier >= maxMultiplier ||
+                    disabled ||
+                    isSubmitting
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-[#eed289] text-black hover:bg-[#d4b24a] active:scale-95"
+                  }`}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            {/* Quick Select Multipliers */}
+            {/* <p className="text-gray-400 text-xs text-center mb-2">
+              Quick Select:
+            </p> */}
             <div className="grid grid-cols-5 gap-1.5 sm:gap-3">
               {multipliers.map((multiplier) => (
                 <button
@@ -348,14 +416,14 @@ export default function PlaceBetModel({
               <span>Multiplier:</span>
               <span className="font-semibold">x{selectedMultiplier}</span>
             </div>
-            {balance !== null && (
+            {/* {balance !== null && (
               <div className="flex justify-between items-center text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">
                 <span>Balance after bet:</span>
                 <span className={`font-semibold ${hasInsufficientBalance ? "text-red-500" : "text-green-600"}`}>
                   ₹{Math.max(0, balance - totalBet).toFixed(2)}
                 </span>
               </div>
-            )}
+            )} */}
             <div className="border-t pt-2 mt-2">
               <div className="flex justify-between items-center font-bold text-orange-500 text-base sm:text-lg">
                 <span>Total Bet:</span>
@@ -376,9 +444,24 @@ export default function PlaceBetModel({
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                <svg
+                  className="animate-spin h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
                 </svg>
                 Placing Bet...
               </span>
@@ -386,7 +469,6 @@ export default function PlaceBetModel({
               getConfirmButtonText()
             )}
           </button>
-
         </div>
       </div>
     </div>
