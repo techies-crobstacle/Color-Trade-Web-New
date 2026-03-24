@@ -51,20 +51,98 @@ interface ApiResponse {
   status: string;
   statusCode: number;
   message: string;
-  data: Record<string, GameStats>; // Changed from GameStats[] to Record<string, GameStats>
+  data: Record<string, GameStats>;
+}
+
+// ─── Per-row live countdown timer ────────────────────────────────────────────
+function getDurationForPrefix(prefix: string): number {
+  if (prefix === '1m') return 60;
+  if (prefix === '3m') return 180;
+  if (prefix === '5m') return 300;
+  return 0;
+}
+
+function getTimerSecondsFromPeriod(period: string): number {
+  const parts = period.split('-');
+  if (parts.length < 3) return 0;
+
+  const prefix = parts[0];
+  const datePart = parts[1];
+  const timePart = parts[2];
+
+  const duration = getDurationForPrefix(prefix);
+  if (duration === 0) return 0;
+
+  const year = parseInt(datePart.slice(0, 4), 10);
+  const month = parseInt(datePart.slice(4, 6), 10) - 1;
+  const day = parseInt(datePart.slice(6, 8), 10);
+  const hour = parseInt(timePart.slice(0, 2), 10);
+  const minute = parseInt(timePart.slice(2, 4), 10);
+
+  const startMs = new Date(year, month, day, hour, minute, 0, 0).getTime();
+  const elapsed = Math.floor((Date.now() - startMs) / 1000);
+  return Math.max(0, duration - elapsed);
+}
+
+// When the stored period has expired, fall back to the live current-slot timer
+function getCurrentSlotRemaining(prefix: string): number {
+  const duration = getDurationForPrefix(prefix);
+  if (duration === 0) return 0;
+  const now = new Date();
+  const s = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  return duration - (s % duration);
+}
+
+function GameTimerCell({ period }: { period: string }) {
+  const prefix = period.split('-')[0];
+  const duration = getDurationForPrefix(prefix);
+
+  const getRemaining = () => {
+    const fromPeriod = getTimerSecondsFromPeriod(period);
+    return fromPeriod > 0 ? fromPeriod : getCurrentSlotRemaining(prefix);
+  };
+
+  const [remaining, setRemaining] = useState(getRemaining);
+
+  useEffect(() => {
+    if (duration === 0) return;
+    const tick = () => setRemaining(getRemaining());
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [period, duration]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (duration === 0) {
+    return <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.8rem' }}>—</Typography>;
+  }
+
+  const pct = remaining / duration;
+  const color = pct > 0.3 ? '#4caf50' : pct > 0.1 ? '#ff9800' : '#f44336';
+  const mm = Math.floor(remaining / 60).toString().padStart(2, '0');
+  const ss = (remaining % 60).toString().padStart(2, '0');
+
+  return (
+    <Chip
+      label={`${mm}:${ss}`}
+      size="small"
+      sx={{ backgroundColor: color, color: 'white', fontSize: '0.7rem', fontWeight: 'bold', minWidth: '52px' }}
+    />
+  );
 }
 
 export default function GameStatsTable() {
   const [gameStats, setGameStats] = useState<GameStats[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-  
+
   const [search, setSearch] = useState('');
+  // Game duration filter — default to All
+  const [durationFilter, setDurationFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  
+
   // Set Winner Modal State
   const [setWinnerModal, setSetWinnerModal] = useState<boolean>(false);
   const [selectedGamePeriod, setSelectedGamePeriod] = useState<string>('');
@@ -79,7 +157,7 @@ export default function GameStatsTable() {
   // Fetch game stats from API
   const fetchGameStats = async () => {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       setError('Authentication token not found. Please login again.');
       return;
@@ -102,37 +180,33 @@ export default function GameStatsTable() {
       }
 
       const result: ApiResponse = await response.json();
-      
+
       if (result.status === 'success') {
-        // Convert the object structure to array and sort from latest to oldest
         const gameStatsArray = Object.values(result.data || {});
-        
+
         const sortedData = gameStatsArray.sort((a, b) => {
-          // Extract timestamp from period (format: 3m-YYYYMMDD-HHMM-Round)
           const getTimestamp = (period: string) => {
             const parts = period.split('-');
             if (parts.length >= 4) {
-              const date = parts[1]; // YYYYMMDD
-              const time = parts[2]; // HHMM
-              const round = parts[3]; // Round number
-              // Create comparable string: YYYYMMDDHHMM + padded round
+              const date = parts[1];
+              const time = parts[2];
+              const round = parts[3];
               return date + time + round.padStart(4, '0');
             }
             return period;
           };
-          
+
           const timestampA = getTimestamp(a.period);
           const timestampB = getTimestamp(b.period);
-          
-          // Sort descending (latest first)
+
           return timestampB.localeCompare(timestampA);
         });
-        
+
         setGameStats(sortedData);
       } else {
         throw new Error(result.message || 'API returned error status');
       }
-      
+
     } catch (err) {
       console.error('Error fetching game stats:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch game stats');
@@ -142,7 +216,6 @@ export default function GameStatsTable() {
     }
   };
 
-  // Auto-fetch on component mount
   useEffect(() => {
     fetchGameStats();
   }, []);
@@ -150,10 +223,17 @@ export default function GameStatsTable() {
   // Filter and pagination logic
   const filteredStats = gameStats.filter(stat => {
     const matchesSearch = stat.period.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || 
+
+    // Duration filter — 'All' shows everything, otherwise match by prefix
+    const matchesDuration =
+      durationFilter === 'All' || stat.period.toLowerCase().startsWith(durationFilter + '-');
+
+    const matchesStatus =
+      statusFilter === 'All' ||
       (statusFilter === 'Active' && !stat.message) ||
       (statusFilter === 'No Bets' && stat.message);
-    return matchesSearch && matchesStatus;
+
+    return matchesSearch && matchesDuration && matchesStatus;
   });
 
   const totalPages = Math.ceil(filteredStats.length / entriesPerPage);
@@ -165,13 +245,20 @@ export default function GameStatsTable() {
   // Helper functions
   const formatPeriod = (period: string) => {
     const parts = period.split('-');
-    if (parts.length >= 3) {
+    if (parts.length >= 4) {
       const date = parts[1];
       const time = parts[2];
       const round = parts[3];
       return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)} ${time.slice(0, 2)}:${time.slice(2, 4)} R${round}`;
     }
     return period;
+  };
+
+  const getDurationLabel = (period: string) => {
+    if (period.startsWith('1m-')) return '1 Min';
+    if (period.startsWith('3m-')) return '3 Min';
+    if (period.startsWith('5m-')) return '5 Min';
+    return '';
   };
 
   const getStatusColor = (stat: GameStats) => {
@@ -205,7 +292,7 @@ export default function GameStatsTable() {
 
   const handleSetWinner = async () => {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       setError('Authentication token not found. Please login again.');
       return;
@@ -237,22 +324,36 @@ export default function GameStatsTable() {
       }
 
       const result = await response.json();
-      
+
       if (result.status === 'success') {
         closeSetWinnerModal();
-        // Refresh the game stats to show updated data
         await fetchGameStats();
-        // You could also show a success message here
       } else {
         throw new Error(result.message || 'Failed to set winner');
       }
-      
+
     } catch (err) {
       console.error('Error setting winner:', err);
       setError(err instanceof Error ? err.message : 'Failed to set winner');
     } finally {
       setSettingWinner(false);
     }
+  };
+
+  // Duration tab config
+  const durationTabs = [
+    { label: 'All', value: 'All' },
+    { label: '1 Min', value: '1m' },
+    { label: '3 Min', value: '3m' },
+    { label: '5 Min', value: '5m' },
+  ];
+
+  const getTabActiveColor = (value: string) => {
+    if (value === 'All') return '#e0e0e0';
+    if (value === '1m') return '#2196f3';
+    if (value === '3m') return '#9c27b0';
+    if (value === '5m') return '#ff5722';
+    return '#e0e0e0';
   };
 
   return (
@@ -281,16 +382,75 @@ export default function GameStatsTable() {
 
       {/* Filters */}
       <Box className="flex flex-wrap justify-between items-center gap-4">
+        {/* Search */}
         <TextField
           variant="outlined"
           size="small"
           label="Search Period"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 250 }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
+          sx={{ minWidth: 200 }}
           disabled={loading}
         />
 
+        {/* Game Duration Tabs */}
+        <Box
+          sx={{
+            display: 'flex',
+            backgroundColor: '#1f1f1f',
+            borderRadius: '8px',
+            p: '4px',
+            gap: '2px',
+          }}
+        >
+          {durationTabs.map((tab) => {
+            const isActive = durationFilter === tab.value;
+            const activeColor = getTabActiveColor(tab.value);
+            return (
+              <Button
+                key={tab.value}
+                onClick={() => {
+                  setDurationFilter(tab.value);
+                  setCurrentPage(1);
+                }}
+                disabled={loading}
+                size="small"
+                sx={{
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: '6px',
+                  fontSize: '0.75rem',
+                  fontWeight: isActive ? 'bold' : 'normal',
+                  color: isActive
+                    ? tab.value === 'All' ? '#1f1f1f' : 'white'
+                    : 'rgba(255,255,255,0.6)',
+                  backgroundColor: isActive ? activeColor : 'transparent',
+                  '&:hover': {
+                    backgroundColor: isActive ? activeColor : 'rgba(255,255,255,0.1)',
+                    color: isActive
+                      ? tab.value === 'All' ? '#1f1f1f' : 'white'
+                      : 'white',
+                  },
+                  '&.Mui-disabled': {
+                    color: isActive ? (tab.value === 'All' ? '#1f1f1f' : 'white') : 'rgba(255,255,255,0.3)',
+                    backgroundColor: isActive ? activeColor : 'transparent',
+                  },
+                  transition: 'all 0.2s ease',
+                  minWidth: '60px',
+                  textTransform: 'none',
+                  boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.3)' : 'none',
+                }}
+              >
+                {tab.label}
+              </Button>
+            );
+          })}
+        </Box>
+
+        {/* Status Filter */}
         <FormControl size="small" disabled={loading}>
           <InputLabel>Status</InputLabel>
           <Select
@@ -358,19 +518,21 @@ export default function GameStatsTable() {
           <TableHead sx={{ backgroundColor: "#1f1f1f" }}>
             <TableRow>
               <TableCell sx={{ color: 'white' }}>Period</TableCell>
+              <TableCell sx={{ color: 'white' }}>Game Type</TableCell>
               <TableCell sx={{ color: 'white' }}>Status</TableCell>
               <TableCell sx={{ color: 'white' }}>Total Bets</TableCell>
               <TableCell sx={{ color: 'white' }}>Total Profit</TableCell>
               <TableCell sx={{ color: 'white' }}>Numbers</TableCell>
               <TableCell sx={{ color: 'white' }}>Colors (R/G/V)</TableCell>
               <TableCell sx={{ color: 'white' }}>Size (Big/Small)</TableCell>
+              <TableCell sx={{ color: 'white' }}>Timer</TableCell>
               <TableCell sx={{ color: 'white' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                   <CircularProgress size={40} />
                 </TableCell>
               </TableRow>
@@ -383,6 +545,30 @@ export default function GameStatsTable() {
                         {formatPeriod(stat.period)}
                       </Typography>
                     </TableCell>
+
+                    {/* Game Type column */}
+                    <TableCell>
+                      {getDurationLabel(stat.period) ? (
+                        <Chip
+                          label={getDurationLabel(stat.period)}
+                          size="small"
+                          sx={{
+                            backgroundColor:
+                              stat.period.startsWith('1m-') ? '#2196f3' :
+                              stat.period.startsWith('3m-') ? '#9c27b0' :
+                              '#ff5722',
+                            color: 'white',
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.8rem' }}>
+                          —
+                        </Typography>
+                      )}
+                    </TableCell>
+
                     <TableCell>
                       <Chip
                         label={getStatusLabel(stat)}
@@ -396,8 +582,8 @@ export default function GameStatsTable() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                        {stat.totalByNumber ? 
-                          Object.values(stat.totalByNumber).reduce((sum, val) => sum + val, 0) : 
+                        {stat.totalByNumber ?
+                          Object.values(stat.totalByNumber).reduce((sum, val) => sum + val, 0) :
                           0
                         }
                       </Typography>
@@ -406,14 +592,14 @@ export default function GameStatsTable() {
                       <Typography
                         variant="body2"
                         sx={{
-                          color: stat.profitLossByNumber ? 
-                            (getTotalProfit(stat.profitLossByNumber) >= 0 ? '#4caf50' : '#f44336') : 
+                          color: stat.profitLossByNumber ?
+                            (getTotalProfit(stat.profitLossByNumber) >= 0 ? '#4caf50' : '#f44336') :
                             'inherit',
                           fontWeight: 'bold'
                         }}
                       >
-                        {stat.profitLossByNumber ? 
-                          (getTotalProfit(stat.profitLossByNumber) > 0 ? '+' : '') + getTotalProfit(stat.profitLossByNumber) : 
+                        {stat.profitLossByNumber ?
+                          (getTotalProfit(stat.profitLossByNumber) > 0 ? '+' : '') + getTotalProfit(stat.profitLossByNumber) :
                           'N/A'
                         }
                       </Typography>
@@ -426,9 +612,9 @@ export default function GameStatsTable() {
                               key={number}
                               label={`${number}:${count}`}
                               size="small"
-                              sx={{ 
-                                backgroundColor: '#2196f3', 
-                                color: 'white', 
+                              sx={{
+                                backgroundColor: '#2196f3',
+                                color: 'white',
                                 fontSize: '0.65rem',
                                 minWidth: 'auto'
                               }}
@@ -444,35 +630,20 @@ export default function GameStatsTable() {
                     <TableCell>
                       {stat.totalByColor ? (
                         <Box className="flex gap-1 flex-wrap">
-                          <Chip 
-                            label={stat.totalByColor.Red} 
-                            size="small" 
-                            sx={{ 
-                              backgroundColor: '#f44336', 
-                              color: 'white', 
-                              fontSize: '0.65rem',
-                              minWidth: '25px'
-                            }} 
+                          <Chip
+                            label={stat.totalByColor.Red}
+                            size="small"
+                            sx={{ backgroundColor: '#f44336', color: 'white', fontSize: '0.65rem', minWidth: '25px' }}
                           />
-                          <Chip 
-                            label={stat.totalByColor.Green} 
-                            size="small" 
-                            sx={{ 
-                              backgroundColor: '#4caf50', 
-                              color: 'white', 
-                              fontSize: '0.65rem',
-                              minWidth: '25px'
-                            }} 
+                          <Chip
+                            label={stat.totalByColor.Green}
+                            size="small"
+                            sx={{ backgroundColor: '#4caf50', color: 'white', fontSize: '0.65rem', minWidth: '25px' }}
                           />
-                          <Chip 
-                            label={stat.totalByColor.Violet} 
-                            size="small" 
-                            sx={{ 
-                              backgroundColor: '#9c27b0', 
-                              color: 'white', 
-                              fontSize: '0.65rem',
-                              minWidth: '25px'
-                            }} 
+                          <Chip
+                            label={stat.totalByColor.Violet}
+                            size="small"
+                            sx={{ backgroundColor: '#9c27b0', color: 'white', fontSize: '0.65rem', minWidth: '25px' }}
                           />
                         </Box>
                       ) : (
@@ -484,26 +655,16 @@ export default function GameStatsTable() {
                     <TableCell>
                       {stat.totalBySize ? (
                         <Box className="flex gap-1">
-                          <Chip 
+                          <Chip
                             label={stat.totalBySize.big}
                             size="small"
-                            sx={{ 
-                              backgroundColor: '#607d8b', 
-                              color: 'white', 
-                              fontSize: '0.65rem',
-                              minWidth: '25px'
-                            }}
+                            sx={{ backgroundColor: '#607d8b', color: 'white', fontSize: '0.65rem', minWidth: '25px' }}
                             title="Big"
                           />
-                          <Chip 
+                          <Chip
                             label={stat.totalBySize.small}
                             size="small"
-                            sx={{ 
-                              backgroundColor: '#795548', 
-                              color: 'white', 
-                              fontSize: '0.65rem',
-                              minWidth: '25px'
-                            }}
+                            sx={{ backgroundColor: '#795548', color: 'white', fontSize: '0.65rem', minWidth: '25px' }}
                             title="Small"
                           />
                         </Box>
@@ -513,9 +674,17 @@ export default function GameStatsTable() {
                         </Typography>
                       )}
                     </TableCell>
+
+                    {/* Timer */}
                     <TableCell>
-                      {!stat.message ? (
-                        <Box className="flex gap-1 flex-wrap">
+                      <GameTimerCell period={stat.period} />
+                    </TableCell>
+
+                    {/* Actions */}
+                    <TableCell>
+                      <Box className="flex gap-1 flex-wrap">
+                        {/* Details button only when bets exist */}
+                        {!stat.message && (
                           <Button
                             size="small"
                             startIcon={<Visibility />}
@@ -524,39 +693,35 @@ export default function GameStatsTable() {
                           >
                             {expandedRow === stat.period ? 'Hide' : 'Details'}
                           </Button>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            startIcon={<EmojiEvents />}
-                            onClick={() => openSetWinnerModal(stat.period)}
-                            sx={{ 
-                              fontSize: '0.7rem',
-                              backgroundColor: '#ff9800',
-                              '&:hover': {
-                                backgroundColor: '#f57c00'
-                              }
-                            }}
-                          >
-                            Set Winner
-                          </Button>
-                        </Box>
-                      ) : (
-                        <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.8rem' }}>
-                          {stat.message}
-                        </Typography>
-                      )}
+                        )}
+
+                        {/* Set Winner always visible */}
+                        <Button
+                          size="small"
+                          variant="contained"
+                          startIcon={<EmojiEvents />}
+                          onClick={() => openSetWinnerModal(stat.period)}
+                          sx={{
+                            fontSize: '0.7rem',
+                            backgroundColor: '#ff9800',
+                            '&:hover': { backgroundColor: '#f57c00' }
+                          }}
+                        >
+                          Set Winner
+                        </Button>
+                      </Box>
                     </TableCell>
                   </TableRow>
-                  
+
                   {/* Expanded Row Details */}
                   {expandedRow === stat.period && stat.profitLossByNumber && (
                     <TableRow>
-                      <TableCell colSpan={8} sx={{ backgroundColor: '#f8f9fa', border: '1px solid #dee2e6' }}>
+                      <TableCell colSpan={10} sx={{ backgroundColor: '#f8f9fa', border: '1px solid #dee2e6' }}>
                         <Box className="p-4">
                           <Typography variant="h6" className="mb-4" sx={{ color: '#495057', fontWeight: 600 }}>
                             Detailed Analysis for {formatPeriod(stat.period)}
                           </Typography>
-                          
+
                           {/* Summary Cards */}
                           <Box className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                             <Box sx={{ backgroundColor: 'white', p: 2, borderRadius: 2, boxShadow: 1 }}>
@@ -579,9 +744,9 @@ export default function GameStatsTable() {
                             </Box>
                             <Box sx={{ backgroundColor: 'white', p: 2, borderRadius: 2, boxShadow: 1 }}>
                               <Typography variant="subtitle2" color="textSecondary">Net Profit</Typography>
-                              <Typography 
-                                variant="h6" 
-                                sx={{ 
+                              <Typography
+                                variant="h6"
+                                sx={{
                                   color: getTotalProfit(stat.profitLossByNumber) >= 0 ? '#4caf50' : '#f44336',
                                   fontWeight: 'bold'
                                 }}
@@ -605,9 +770,9 @@ export default function GameStatsTable() {
                               </TableHead>
                               <TableBody>
                                 {Object.entries(stat.profitLossByNumber).map(([number, data]) => (
-                                  <TableRow 
-                                    key={number} 
-                                    sx={{ 
+                                  <TableRow
+                                    key={number}
+                                    sx={{
                                       backgroundColor: data.profit < 0 ? '#ffebee' : data.profit > 0 ? '#e8f5e8' : 'inherit',
                                       '&:hover': { backgroundColor: data.profit < 0 ? '#ffcdd2' : data.profit > 0 ? '#c8e6c9' : '#f5f5f5' }
                                     }}
@@ -652,8 +817,8 @@ export default function GameStatsTable() {
                               </TableBody>
                             </Table>
                           </TableContainer>
-                          
-                          {/* Size Distribution with More Details */}
+
+                          {/* Size Distribution */}
                           {stat.totalBySize && (
                             <Box className="mt-4" sx={{ backgroundColor: 'white', p: 3, borderRadius: 2, boxShadow: 1 }}>
                               <Typography variant="subtitle1" className="mb-3" sx={{ fontWeight: 600, color: '#495057' }}>
@@ -661,8 +826,8 @@ export default function GameStatsTable() {
                               </Typography>
                               <Box className="flex gap-4 items-center">
                                 <Box className="flex items-center gap-2">
-                                  <Chip 
-                                    label={`Big: ${stat.totalBySize.big}`} 
+                                  <Chip
+                                    label={`Big: ${stat.totalBySize.big}`}
                                     sx={{ backgroundColor: '#607d8b', color: 'white', fontWeight: 'bold' }}
                                   />
                                   <Typography variant="body2" color="textSecondary">
@@ -670,8 +835,8 @@ export default function GameStatsTable() {
                                   </Typography>
                                 </Box>
                                 <Box className="flex items-center gap-2">
-                                  <Chip 
-                                    label={`Small: ${stat.totalBySize.small}`} 
+                                  <Chip
+                                    label={`Small: ${stat.totalBySize.small}`}
                                     sx={{ backgroundColor: '#795548', color: 'white', fontWeight: 'bold' }}
                                   />
                                   <Typography variant="body2" color="textSecondary">
@@ -689,7 +854,7 @@ export default function GameStatsTable() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                   <Typography variant="body1" color="textSecondary">
                     {error ? 'Failed to load game stats' : 'No game statistics found'}
                   </Typography>
@@ -701,8 +866,8 @@ export default function GameStatsTable() {
       </TableContainer>
 
       {/* Set Winner Modal */}
-      <Dialog 
-        open={setWinnerModal} 
+      <Dialog
+        open={setWinnerModal}
         onClose={closeSetWinnerModal}
         maxWidth="sm"
         fullWidth
@@ -719,12 +884,12 @@ export default function GameStatsTable() {
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
                 Game Period:
               </Typography>
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  fontFamily: 'monospace', 
-                  backgroundColor: '#f5f5f5', 
-                  p: 1, 
+              <Typography
+                variant="body1"
+                sx={{
+                  fontFamily: 'monospace',
+                  backgroundColor: '#f5f5f5',
+                  p: 1,
                   borderRadius: 1,
                   fontSize: '0.9rem'
                 }}
@@ -732,7 +897,7 @@ export default function GameStatsTable() {
                 {formatPeriod(selectedGamePeriod)}
               </Typography>
             </Box>
-            
+
             <FormControl fullWidth>
               <InputLabel>Winning Number</InputLabel>
               <Select
@@ -748,7 +913,6 @@ export default function GameStatsTable() {
                         {num}
                       </Typography>
                       <Box className="flex gap-1">
-                        {/* Show colors for each number */}
                         {num === 0 && (
                           <>
                             <Chip label="Red" size="small" sx={{ backgroundColor: '#f44336', color: 'white', fontSize: '0.6rem' }} />
@@ -784,22 +948,20 @@ export default function GameStatsTable() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button 
-            onClick={closeSetWinnerModal} 
+          <Button
+            onClick={closeSetWinnerModal}
             disabled={settingWinner}
             variant="outlined"
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleSetWinner} 
+          <Button
+            onClick={handleSetWinner}
             disabled={settingWinner || selectedWinningNumber < 0}
             variant="contained"
-            sx={{ 
+            sx={{
               backgroundColor: '#4caf50',
-              '&:hover': {
-                backgroundColor: '#388e3c'
-              }
+              '&:hover': { backgroundColor: '#388e3c' }
             }}
             startIcon={settingWinner ? <CircularProgress size={16} /> : <EmojiEvents />}
           >
