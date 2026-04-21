@@ -264,6 +264,7 @@ export default function GameStatsTable() {
       });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const result: ApiResponse = await response.json();
+
       if (result.status === 'success') {
         const gameStatsArray = Object.values(result.data || {}).filter((s): s is GameStats => !!s?.period);
         const prefixOrder: Record<string, string> = { '1m': '1', '3m': '3', '5m': '5' };
@@ -274,13 +275,11 @@ export default function GameStatsTable() {
           }
           return period;
         };
-        const sortedData = gameStatsArray.sort((a, b) =>
-          getSortKey(b.period).localeCompare(getSortKey(a.period))
-        );
-        setGameStats(sortedData);
-      } else {
-        throw new Error(result.message || 'API returned error status');
-      }
+  const sortedData = gameStatsArray.sort((a, b) =>
+    getSortKey(b.period).localeCompare(getSortKey(a.period))
+  );
+  setGameStats(sortedData);
+}
     } catch (err) {
       console.error('Error fetching game stats:', err);
       if (!silent) setError(err instanceof Error ? err.message : 'Failed to fetch game stats');
@@ -470,6 +469,7 @@ export default function GameStatsTable() {
 
       {/* Filters */}
       <Box className="flex flex-wrap justify-between items-center gap-4">
+        {/* Search */}
         <TextField
           variant="outlined"
           size="small"
