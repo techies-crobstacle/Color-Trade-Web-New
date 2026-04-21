@@ -58,14 +58,14 @@ export default function WinningInfo() {
 
   return (
     <div className="rounded-lg px-2 py-3 sm:px-0">
-      <h1 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 border-l-4 pl-2 border-[#1ab266]">
+      <h1 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 border-l-4 pl-2 text-white border-[#C4933F]">
         Winning Information
       </h1>
       <div className="flex gap-2 sm:gap-3 flex-col">
         {winners.map((winner) => (
           <div
             key={winner.id}
-            className="flex items-center bg-white p-2 sm:p-3 gap-2 sm:gap-5 rounded-lg shadow"
+            className="flex items-center bg-white/10 text-white p-2 sm:p-3 gap-2 sm:gap-5 rounded-lg shadow"
           >
             <div className="basis-2/12">
               <Image
@@ -89,10 +89,10 @@ export default function WinningInfo() {
               />
             </div>
             <div className="basis-4/12 text-right">
-              <p className="text-green-600 font-bold text-sm sm:text-base">
+              <p className="text-[#C4933F] font-bold text-sm sm:text-base">
                 ₹{winner.amount.toLocaleString()}
               </p>
-              <p className="text-xs sm:text-sm text-gray-800 font-semibold">Winning amount</p>
+              <p className="text-xs sm:text-sm text-white font-semibold">Winning amount</p>
             </div>
           </div>
         ))}

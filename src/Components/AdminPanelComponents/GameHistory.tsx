@@ -134,7 +134,6 @@ export default function GameHistory() {
       case "1m": return "1 Min Game";
       case "3m": return "3 Min Game";
       case "5m": return "5 Min Game";
-      case "10m": return "10 Min Game";
       default: return `${duration} Game`;
     }
   };
@@ -188,7 +187,6 @@ export default function GameHistory() {
                 <option value="1m">1 Min Game</option>
                 <option value="3m">3 Min Game</option>
                 <option value="5m">5 Min Game</option>
-                <option value="10m">10 Min Game</option>
               </select>
             </div>
 

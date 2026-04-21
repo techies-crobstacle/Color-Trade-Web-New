@@ -103,13 +103,13 @@ const handleDeposit = async () => {
 
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#242424] ">
       {/* Header */}
-      <div className="bg-white flex justify-between py-3 px-3 items-center">
+      <div className="bg-[#333332] text-white flex justify-between py-3 px-3 items-center">
         <Link href="/wallet">
           <Image
             className="w-5 h-5"
-            src="/left-arrow.png"
+            src="/leftArrow.png"
             width={500}
             height={500}
             alt="Back"
@@ -119,7 +119,7 @@ const handleDeposit = async () => {
         <div className="w-5"></div>
       </div>
 
-      <div className="bg-green-50 min-h-screen pb-6">
+      <div className="bg-[#242424] min-h-screen pb-6">
         {/* Balance Section */}
         <div className="p-4 sm:p-5 bg-[url('/bannerbg.png')] bg-cover mx-3 sm:mx-4 mt-3 rounded-xl shadow-md">
           <div className="flex items-center gap-2">
@@ -134,7 +134,7 @@ const handleDeposit = async () => {
         </div>
 
         {/* Payment Method */}
-        <div className="bg-green-500 w-28 sm:w-32 mx-3 sm:mx-4 rounded-xl flex justify-center py-4 sm:py-5 my-4 sm:my-5">
+        <div className="bg-gradient-to-b from-[#f9d45a] to-[#b07b1f] w-28 sm:w-32 mx-3 sm:mx-4 rounded-xl flex justify-center py-4 sm:py-5 my-4 sm:my-5">
           <Image
             className="w-10 sm:w-12"
             src="/upi.png"
@@ -145,7 +145,7 @@ const handleDeposit = async () => {
         </div>
 
         {/* Deposit Amount Section */}
-        <div className="bg-white rounded-xl mx-3 sm:mx-4 pb-5 sm:pb-6 px-2 sm:px-3 my-4">
+        <div className="bg-white/10 rounded-xl mx-3 sm:mx-4 pb-5 sm:pb-6 px-2 sm:px-3 my-4">
           <div className="flex items-center p-2 sm:p-3 gap-2 sm:gap-3">
             <Image
               className="w-6 sm:w-7"
@@ -154,7 +154,7 @@ const handleDeposit = async () => {
               height={500}
               alt="Deposit Icon"
             />
-            <h1 className="text-base sm:text-lg font-semibold">Deposit Amount</h1>
+            <h1 className="text-base sm:text-lg text-white font-semibold">Deposit Amount</h1>
           </div>
 
           {/* Amount Buttons */}
@@ -172,10 +172,10 @@ const handleDeposit = async () => {
             ].map((value) => (
               <button
                 key={value}
-                className={`border-2 p-2 rounded-xl flex justify-center items-center hover:bg-green-500 hover:text-white text-base sm:text-xl transition-colors ${
+                className={`border-2 p-2 rounded-xl flex justify-center items-center hover:bg-[#c4933f] hover:text-white text-base sm:text-xl transition-colors ${
                   amount === value
-                    ? "bg-green-500 text-white border-green-500"
-                    : "border-green-500 text-green-600"
+                    ? "bg-[#c4933f] text-white border-[#c4933f]"
+                    : "border-[#c4933f] text-[#c4933f]"
                 }`}
                 onClick={() => setAmount(value)}
               >
@@ -187,14 +187,14 @@ const handleDeposit = async () => {
           {/* Input Field */}
           <div className="mx-2 sm:mx-4 mt-4">
             <input
-              className="p-2 sm:p-3 w-full bg-green-100 rounded-lg border-l-2 border-black text-sm sm:text-base"
+              className="p-2 sm:p-3 w-full bg-[#4d4d4c] rounded-lg border-l-2 text-white border-black text-sm sm:text-base"
               placeholder="Enter or select recharge amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               type="number"
             />
             <button
-              className="w-full bg-green-500 p-2 sm:p-3 mt-4 sm:mt-5 text-white font-bold text-base sm:text-lg rounded-full hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#c4933f] p-2 sm:p-3 mt-4 sm:mt-5 text-white font-bold text-base sm:text-lg rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleDeposit}
               disabled={loading}
             >
@@ -204,7 +204,7 @@ const handleDeposit = async () => {
         </div>
 
         {/* Deposit Instruction */}
-        <div className="bg-white rounded-xl mx-3 sm:mx-4 pb-5 sm:pb-6 my-4">
+        <div className="bg-[#4d4d4c] rounded-xl mx-3 sm:mx-4 pb-5 sm:pb-6 my-4">
           <div className="flex items-center p-2 sm:p-3 gap-2 sm:gap-3">
             <Image
               className="w-6 sm:w-7"
@@ -213,7 +213,7 @@ const handleDeposit = async () => {
               height={500}
               alt="Instructions"
             />
-            <h1 className="text-base sm:text-lg font-semibold">Deposit Instruction</h1>
+            <h1 className="text-base sm:text-lg text-white font-semibold">Deposit Instruction</h1>
           </div>
           <div className="border-2 p-3 sm:p-4 mx-2 rounded-xl">
             <ul className="text-gray-400 text-xs sm:text-sm font-semibold space-y-1">

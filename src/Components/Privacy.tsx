@@ -16,9 +16,9 @@ export default function Privacy() {
   };
 
   return (
-    <div className="bg-white flex-1 min-h-screen">
+    <div className="bg-[#242424] flex-1 min-h-screen">
       {/* Section 1 */}
-      <div className="bg-[#1ab266] px-5">
+      <div className="bg-[#333332] px-5">
         <div className="relative">
           {/* Back button */}
           <button
@@ -39,14 +39,14 @@ export default function Privacy() {
         </h1>
       </div>
       {/* Section 2 */}
-      <div className="p-5 font-[500] text-gray-500 text-sm flex flex-col gap-3">
+      <div className="p-5 font-[500] text-gray-400 text-sm flex flex-col gap-3">
         <p>
           When you visit the Site, we collect certain information about your
           device, your interaction with the Site, and the information necessary
           to process your purchases. We may also collect additional information
           if you may also collect additional information if you
         </p>
-        <h3 className="text-3xl text-black">Minors</h3>
+        <h3 className="text-3xl text-white">Minors</h3>
         <p>
           The Site is not intended for individuals under the age of 18 . We do
           not intentionally collect Personal Information from children. If you
@@ -54,7 +54,7 @@ export default function Privacy() {
           Personal Information, please contact us at the address below to
           request deletion.
         </p>
-        <h3 className="text-3xl text-black">Sharing Personal Information</h3>
+        <h3 className="text-3xl text-white">Sharing Personal Information</h3>
         <p>
           We share your Personal Information with service providers to help us
           provide our services and fulfill our contracts with you, as described
@@ -73,14 +73,14 @@ export default function Privacy() {
             our rights.
           </li>
         </ul>
-        <h3 className="text-3xl text-black">Using Personal Information</h3>
+        <h3 className="text-3xl text-white">Using Personal Information</h3>
         <p>
           We use your personal Information to provide our services to you, which
           includes: offering products for sale, processing payments, shipping and
           fulfillment of your order, and keeping you up to date on new products,
           services, and offers.
         </p>
-        <h3 className="text-3xl text-black">Lawful basis</h3>
+        <h3 className="text-3xl text-white">Lawful basis</h3>
         <p>
           Pursuant to the General Data Protection Regulation (“GDPR”), if you are
           a resident of the European Economic Area (“EEA”), we process your

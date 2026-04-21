@@ -123,7 +123,7 @@
 import { useLayout } from "@/contexts/LayoutContext";
 import useRequireAuth from "@/hooks/useRequireAuth";
 import Image from "next/image";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSocket } from "@/contexts/SocketContext";
@@ -135,6 +135,7 @@ export default function WalletInfo() {
   useRequireAuth();
 
   const { balance, refreshBalance, isConnected } = useSocket();
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     setShowHeaderFooter(false);
@@ -239,11 +240,58 @@ export default function WalletInfo() {
               </h1>
             </div>
           </div>
-          <button className="p-1 px-3 sm:px-4 text-xs sm:text-sm bg-red-500 text-white rounded-full font-semibold flex-shrink-0">
+          <button onClick={() => setShowDetails(true)} className="p-1 px-3 sm:px-4 text-xs sm:text-sm bg-red-500 text-white rounded-full font-semibold flex-shrink-0">
             Details
           </button>
         </div>
       </div>
+      {showDetails && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 px-4">
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl bg-[#242424]">
+            {/* Header */}
+            <div className="bg-[#333332] px-4 py-3 flex items-center justify-between">
+              <h1 className="text-base font-semibold text-white">About Us</h1>
+              <button onClick={() => setShowDetails(false)}>
+                <Image src="/back-white.png" alt="close" width={20} height={20} className="w-4 h-4 opacity-70" />
+              </button>
+            </div>
+
+            {/* Banner */}
+            <div className="w-full">
+              <Image src="/about-us.png" alt="about-us" width={750} height={284} className="w-full h-auto" />
+            </div>
+
+            {/* Links */}
+            <div className="p-4 flex flex-col gap-3">
+              <Link href="/privacy" onClick={() => setShowDetails(false)} className="bg-white/10 flex justify-between items-center p-3 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Image alt="Confidentiality" src="/inivitecode.png" width={90} height={90} className="w-8 flex-shrink-0" />
+                  <h3 className="font-semibold text-white text-sm">Confidentiality Agreement</h3>
+                </div>
+                <Image className="w-5 h-5 flex-shrink-0" src="/next.png" width={100} height={100} alt="Next" />
+              </Link>
+
+              <Link href="/riskagreement" onClick={() => setShowDetails(false)} className="bg-white/10 flex justify-between items-center p-3 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Image alt="Risk Agreement" src="/inviterule.png" width={90} height={90} className="w-8 flex-shrink-0" />
+                  <h3 className="font-semibold text-white text-sm">Risk Disclosure Agreement</h3>
+                </div>
+                <Image className="w-5 h-5 flex-shrink-0" src="/next.png" width={100} height={100} alt="Next" />
+              </Link>
+            </div>
+
+            {/* Close button */}
+            <div className="px-4 pb-5">
+              <button
+                onClick={() => setShowDetails(false)}
+                className="w-full py-3 rounded-full bg-gradient-to-b from-[#FAE59F] to-[#C4933F] text-white font-semibold text-base"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

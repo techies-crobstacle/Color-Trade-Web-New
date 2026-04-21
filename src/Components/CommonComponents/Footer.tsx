@@ -14,8 +14,8 @@ const Footer = () => {
   }, []);
 
   return (
-    <div className="fixed max-w-lg bottom-0 w-full bg-white">
-      <div className="border-t-2 flex justify-center py-2 sm:py-2">
+    <div className="fixed max-w-lg rounded-t-3xl bottom-0 w-full bg-[#333332]">
+      <div className=" flex justify-center py-2 sm:py-2">
         {/* Download link */}
         <Link
           href="https://diuvin.com/app.apk"
@@ -66,7 +66,7 @@ const Footer = () => {
         {/* Home link */}
         <div className="basis-1/5 flex flex-col items-center justify-center">
           <Link href="/">
-            <div className="bg-green-600 p-1.5 sm:p-2 px-5 sm:px-7 rounded-3xl">
+            <div className="bg-gradient-to-b from-[#f6c41e] to-[#C4933F] p-1.5 sm:p-2 px-5 sm:px-7 rounded-3xl">
               <Image
                 className="w-6 sm:w-7"
                 src="/gameHome.png"

@@ -221,14 +221,24 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import PayoutTable from "@/Components/LandingPageComponents/Payout";
+import HomePopup from "@/Components/HomePopup/HomePopup";
 
 export default function Home() {
   const router = useRouter();
+  const [showPopup, setShowPopup] = useState(false);
+
+  useEffect(() => {
+    const shouldShow = localStorage.getItem("showLoginPopup");
+    if (shouldShow === "true") {
+      localStorage.removeItem("showLoginPopup");
+      setShowPopup(true);
+    }
+  }, []);
 
   const handleGameClick = (route: string) => {
     const token =
@@ -242,7 +252,8 @@ export default function Home() {
 
   return (
     <>
-      <div className="overflow-hidden mx-auto bg-green-100 px-3 sm:px-5 flex flex-col gap-4 sm:gap-5 py-16 sm:py-20">
+      {showPopup && <HomePopup onClose={() => setShowPopup(false)} />}
+      <div className="overflow-hidden mx-auto bg-[#242424] px-3 sm:px-5 flex flex-col gap-4 sm:gap-5 py-16 sm:py-20">
         {/* Section 1 - Hero Image */}
         <div className="pt-2">
           <Image
@@ -255,7 +266,7 @@ export default function Home() {
         </div>
 
         {/* Marquee Section */}
-        <div className="bg-white rounded-full flex justify-between items-center px-2 py-1 gap-1 sm:gap-2">
+        <div className="bg-white/10 text-white rounded-full flex justify-between items-center px-2 py-1 gap-1 sm:gap-2">
           <h1 className="text-xl sm:text-2xl flex-shrink-0">⭐</h1>
           <div className="overflow-hidden text-xs sm:text-sm flex-1 min-w-0">
             <div className="whitespace-nowrap animate-marquee py-2">
@@ -265,14 +276,14 @@ export default function Home() {
               </h1>
             </div>
           </div>
-          <button className="py-1 px-3 sm:px-4 text-xs sm:text-sm bg-[#1ab266] text-white rounded-full font-semibold flex-shrink-0">
+          <button className="py-1 px-3 sm:px-4 text-xs sm:text-sm bg-gradient-to-b from-[#FAE59F] to-[#C4933F] text-black rounded-full font-semibold flex-shrink-0">
             Details
           </button>
         </div>
 
         {/* Section 2: Games */}
         <div className="text-center bg-cover rounded-lg">
-          <h1 className="text-xl sm:text-2xl font-bold text-black mb-4 sm:mb-5">
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-5">
             Play Exciting Games
           </h1>
           <div className="flex flex-col text-left gap-5 sm:gap-8">
@@ -281,11 +292,11 @@ export default function Home() {
               onClick={() => handleGameClick("/game1")}
               className="flex-1 cursor-pointer"
             >
-              <div className="bg-gradient-to-r from-green-600 rounded-t-xl p-3 sm:p-4 relative min-h-[90px] sm:min-h-[100px]">
-                <h3 className="text-white text-lg sm:text-xl font-bold mb-1 sm:mb-2">
+              <div className="bg-gradient-to-b from-[#FAE59F] to-[#C4933F] text-gray-700 rounded-t-xl p-3 sm:p-4 relative min-h-[90px] sm:min-h-[100px]">
+                <h3 className=" text-lg sm:text-xl font-bold mb-1 sm:mb-2">
                   1 Min
                 </h3>
-                <p className="text-gray-200 font-semibold text-xs sm:text-sm md:text-base w-[55%] sm:w-[60%] md:w-auto pr-2">
+                <p className="font-semibold text-xs sm:text-sm md:text-base w-[55%] sm:w-[60%] md:w-auto pr-2">
                   Guess Number, Green, Purple, Red to Win
                 </p>
                 <Image
@@ -322,11 +333,11 @@ export default function Home() {
               onClick={() => handleGameClick("/game2")}
               className="flex-1 cursor-pointer"
             >
-              <div className="bg-gradient-to-r from-green-600 rounded-t-xl p-3 sm:p-4 relative min-h-[90px] sm:min-h-[100px]">
-                <h3 className="text-white text-lg sm:text-xl font-bold mb-1 sm:mb-2">
+              <div className="bg-gradient-to-b from-[#FAE59F] to-[#C4933F] text-gray-700 rounded-t-xl p-3 sm:p-4 relative min-h-[90px] sm:min-h-[100px]">
+                <h3 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">
                   3 Min
                 </h3>
-                <p className="text-gray-200 font-semibold text-xs sm:text-sm md:text-base w-[55%] sm:w-[60%] md:w-auto pr-2">
+                <p className="font-semibold text-xs sm:text-sm md:text-base w-[55%] sm:w-[60%] md:w-auto pr-2">
                   Guess Number, Green, Purple, Red to Win
                 </p>
                 <Image
@@ -363,11 +374,11 @@ export default function Home() {
               onClick={() => handleGameClick("/game3")}
               className="flex-1 cursor-pointer"
             >
-              <div className="bg-gradient-to-r from-green-600 rounded-t-xl p-3 sm:p-4 relative min-h-[90px] sm:min-h-[100px]">
-                <h3 className="text-white text-lg sm:text-xl font-bold mb-1 sm:mb-2">
+              <div className="bg-gradient-to-b from-[#FAE59F] to-[#C4933F] text-gray-700 rounded-t-xl p-3 sm:p-4 relative min-h-[90px] sm:min-h-[100px]">
+                <h3 className=" text-lg sm:text-xl font-bold mb-1 sm:mb-2">
                   5 Min
                 </h3>
-                <p className="text-gray-200 font-semibold text-xs sm:text-sm md:text-base w-[55%] sm:w-[60%] md:w-auto pr-2">
+                <p className=" font-semibold text-xs sm:text-sm md:text-base w-[55%] sm:w-[60%] md:w-auto pr-2">
                   Guess Number, Green, Purple, Red to Win
                 </p>
                 <Image

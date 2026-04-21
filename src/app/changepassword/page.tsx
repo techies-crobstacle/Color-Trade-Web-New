@@ -211,9 +211,9 @@ function ChangePassword() {
   };
 
   return (
-    <div className="flex-1 bg-white min-h-screen">
+    <div className="flex-1 bg-[#242424] min-h-screen">
       {/* Header */}
-      <div className="bg-[#1ab266] px-3 sm:px-5">
+      <div className="bg-[#333332] px-3 sm:px-5">
         <div className="relative">
           {/* Back button */}
           <button onClick={handleBackButtonClick} className="absolute left-0 top-[13px] sm:top-[15px]">
@@ -245,7 +245,7 @@ function ChangePassword() {
                   height={100} 
                   alt="Password icon" 
                 />
-                <h1 className="font-semibold text-sm sm:text-base">Current Password</h1>
+                <h1 className="font-semibold text-white text-sm sm:text-base">Current Password</h1>
               </div>
               <input
                 className="w-full bg-gray-200 text-black p-2 sm:p-3 rounded-md text-sm sm:text-base pr-10"
@@ -267,7 +267,7 @@ function ChangePassword() {
           </div>
 
           {/* New Password Field */}
-          <div className="mb-5 sm:mb-7">
+          <div className="mb-5 text-white sm:mb-7">
             <div className="relative">
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
                 <Image 
@@ -299,7 +299,7 @@ function ChangePassword() {
           </div>
 
           {/* Confirm New Password Field */}
-          <div className="mb-5 sm:mb-7">
+          <div className="mb-5 text-white sm:mb-7">
             <div className="relative">
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
                 <Image 
@@ -342,7 +342,7 @@ function ChangePassword() {
           <div className="flex flex-col items-center gap-4 pt-2">
             <button
               type="submit"
-              className="bg-[#1ab266] p-2 sm:p-3 rounded-full my-3 text-white font-semibold px-8 sm:px-12 text-sm sm:text-base hover:bg-[#159955] transition-colors"
+              className="bg-[#c4832f] p-2 sm:p-3 rounded-full my-3 text-black font-semibold px-8 sm:px-12 text-sm sm:text-base hover:bg-[#C4931F] transition-colors"
             >
               Change Password
             </button>

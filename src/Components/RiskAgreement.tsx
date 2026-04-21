@@ -16,9 +16,9 @@ export default function RiskAgreement() {
   };
 
   return (
-    <div className="bg-white flex-1 min-h-screen">
+    <div className="bg-[#242424] flex-1 min-h-screen">
       {/* Header Section */}
-      <div className="bg-[#1ab266] px-3 sm:px-5">
+      <div className="bg-[#333332] px-3 sm:px-5">
         <div className="relative">
           {/* Back button */}
           <button
@@ -40,7 +40,7 @@ export default function RiskAgreement() {
       </div>
 
       {/* Content Section */}
-      <div className="p-3 sm:p-5 pb-6 font-medium text-gray-500 text-xs sm:text-sm flex flex-col gap-3 sm:gap-4">
+      <div className="p-3 sm:p-5 pb-6 font-medium text-gray-400 text-xs sm:text-sm flex flex-col gap-3 sm:gap-4">
         <p className="leading-relaxed">
           When you visit the Site, we collect certain information about your
           device, your interaction with the Site, and the information necessary
@@ -48,7 +48,7 @@ export default function RiskAgreement() {
           if you may also collect additional information if you
         </p>
 
-        <h3 className="text-xl sm:text-2xl lg:text-3xl text-black font-semibold mt-2">
+        <h3 className="text-xl sm:text-2xl lg:text-3xl text-white font-semibold mt-2">
           Minors
         </h3>
         <p className="leading-relaxed">
@@ -59,7 +59,7 @@ export default function RiskAgreement() {
           deletion.
         </p>
 
-        <h3 className="text-xl sm:text-2xl lg:text-3xl text-black font-semibold mt-2">
+        <h3 className="text-xl sm:text-2xl lg:text-3xl text-white font-semibold mt-2">
           Sharing Personal Information
         </h3>
         <p className="leading-relaxed">
@@ -88,7 +88,7 @@ export default function RiskAgreement() {
           </li>
         </ul>
 
-        <h3 className="text-xl sm:text-2xl lg:text-3xl text-black font-semibold mt-2">
+        <h3 className="text-xl sm:text-2xl lg:text-3xl text-white font-semibold mt-2">
           Using Personal Information
         </h3>
         <p className="leading-relaxed">
@@ -98,7 +98,7 @@ export default function RiskAgreement() {
           services, and offers.
         </p>
 
-        <h3 className="text-xl sm:text-2xl lg:text-3xl text-black font-semibold mt-2">
+        <h3 className="text-xl sm:text-2xl lg:text-3xl text-white font-semibold mt-2">
           Lawful basis
         </h3>
         <p className="leading-relaxed">

@@ -52,7 +52,6 @@ export const config = {
     '/game1/:path*',
     '/game2/:path*',
     '/game3/:path*',
-    '/game4/:path*',
     '/bethistory/:path*',
     '/deposithistory/:path*',
     '/transactionhistory/:path*',
