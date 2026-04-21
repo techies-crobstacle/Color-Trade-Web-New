@@ -374,7 +374,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         window.location.href = "/login";
         return;
       }
-      
+      // new
       // Handle other connection errors
       setIsConnected(false);
       
