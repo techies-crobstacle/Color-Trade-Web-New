@@ -27,6 +27,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { ArrowBack, ArrowForward, Refresh, Visibility, EmojiEvents, LockClock } from '@mui/icons-material';
+import { apiFetch } from '../../lib/api';
 
 interface GameStats {
   period: string;
@@ -53,6 +54,11 @@ interface ApiResponse {
   statusCode: number;
   message: string;
   data: Record<string, GameStats>;
+}
+
+interface SetWinnerResponse {
+  status: string;
+  message: string;
 }
 
 // ─── Duration helpers ─────────────────────────────────────────────────────────
@@ -247,23 +253,11 @@ export default function GameStatsTable() {
   const SET_WINNER_ENDPOINT = `${API_BASE_URL}/api/admin/set-winner`;
 
   const fetchGameStats = async (silent = false) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('Authentication token not found. Please login again.');
-      return;
-    }
     try {
       if (!silent) setLoading(true);
       if (!silent) setError('');
-      const response = await fetch(API_ENDPOINT, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const result: ApiResponse = await response.json();
+      
+      const result: ApiResponse = await apiFetch(API_ENDPOINT);
 
       if (result.status === 'success') {
         const gameStatsArray = Object.values(result.data || {}).filter((s): s is GameStats => !!s?.period);
@@ -390,11 +384,6 @@ export default function GameStatsTable() {
   };
 
   const handleSetWinner = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('Authentication token not found. Please login again.');
-      return;
-    }
     if (!selectedGamePeriod || selectedWinningNumber < 0 || selectedWinningNumber > 9) {
       setError('Please select a valid winning number (0-9)');
       return;
@@ -402,19 +391,15 @@ export default function GameStatsTable() {
     try {
       setSettingWinner(true);
       setError('');
-      const response = await fetch(SET_WINNER_ENDPOINT, {
+      
+      const result: SetWinnerResponse = await apiFetch(SET_WINNER_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           period: selectedGamePeriod,
           selectedWinningNumber: selectedWinningNumber,
         }),
       });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const result = await response.json();
+      
       if (result.status === 'success') {
         closeSetWinnerModal();
         await fetchGameStats(true);

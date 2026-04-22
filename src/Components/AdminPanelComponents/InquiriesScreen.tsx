@@ -21,6 +21,7 @@ import {
   Alert,
 } from '@mui/material';
 import { ArrowBack, ArrowForward, Refresh } from '@mui/icons-material';
+import { apiFetch } from '../../lib/api';
 
 interface Inquiry {
   _id: string;
@@ -76,19 +77,10 @@ export default function InquiriesTable() {
   // Fetch available query types for filter dropdown
   const fetchQueryTypes = useCallback(async () => {
     try {
-      const response = await fetch(`${API_ENDPOINT}?limit=1000`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const result: ApiResponse = await response.json();
-        if (result.status === 'success' && result.queries) {
-          const uniqueTypes = [...new Set(result.queries.map(q => q.queryType))];
-          setAvailableQueryTypes(uniqueTypes);
-        }
+      const result: ApiResponse = await apiFetch(`${API_ENDPOINT}?limit=1000`);
+      if (result.status === 'success' && result.queries) {
+        const uniqueTypes = [...new Set(result.queries.map(q => q.queryType))];
+        setAvailableQueryTypes(uniqueTypes);
       }
     } catch (err) {
       console.error('Error fetching query types:', err);
@@ -122,20 +114,7 @@ export default function InquiriesTable() {
         params.append('sort', sortOrder);
       }
 
-      const response = await fetch(`${API_ENDPOINT}?${params}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add authorization header if needed
-          // 'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result: ApiResponse = await response.json();
+      const result: ApiResponse = await apiFetch(`${API_ENDPOINT}?${params}`);
       
       if (result.status === 'success') {
         setInquiries(result.queries || []);
