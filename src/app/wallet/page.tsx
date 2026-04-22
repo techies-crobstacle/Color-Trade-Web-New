@@ -39,9 +39,9 @@ const Wallet = () => {
   const strokeDashoffset = circleCircumference - (progressPercentage / 100) * circleCircumference;
 
   return (
-    <div className="bg-[#242424]">
+    <div className="bg-[#242424] min-h-screen">
       {/* Wallet Section */}
-      <div className="flex-1">
+      <div className="">
         <div className="bg-[#333332] px-4 sm:px-5 pt-2 sm:pt-3 pb-5 sm:pb-6 h-full">
           <div className="relative flex flex-col gap-2 sm:gap-3 items-center text-white">
             <h1 className="text-xl sm:text-2xl mb-2 sm:mb-3">Wallet</h1>
@@ -81,7 +81,7 @@ const Wallet = () => {
       </div>
 
       {/* Progress Bar Section */}
-      <div className="px-4 sm:px-5 flex flex-col text-center py-6 sm:py-10 gap-5 sm:gap-8">
+      <div className="px-4 sm:px-5  flex flex-col text-center py-6 sm:py-10 gap-5 sm:gap-8">
         <div className="flex flex-col justify-center items-center gap-2">
           {/* Circular Progress Bar */}
           <div className=" text-white relative flex justify-center items-center">
