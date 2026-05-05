@@ -129,3 +129,6 @@
   animation: marquee 10s linear infinite;
 }
 
+.dot {
+  transition: transform 0.2s;
+}

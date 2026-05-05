@@ -1,10 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 
 // Make sure you have <ToastContainer /> somewhere in your root layout/page
 
@@ -14,6 +13,8 @@ const Otp = () => {
   const phone = searchParams.get("phone");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [timer, setTimer] = useState(180); // 3 minutes in seconds
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const value = e.target.value;
@@ -48,39 +49,106 @@ const Otp = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("https://ctbackend.crobstacle.com/api/auth/verifyOtp", {
+      const response = await fetch("https://ctbackend.crobstacle.com/api/auth/verifyotp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ number: phone, otp: otpValue }),
       });
 
-      if (response.ok) {
-  const data = await response.json();
-  
-  // Check verification success
-  if (data.number === phone && data.otp == otpValue) {
-    toast.success("OTP Verified Successfully!");
-  } else {
-    toast.success("OTP verified successfully! Account Activated.");
-  }
-  
-  // Redirect after short delay so toast can show
-  setTimeout(() => {
-    router.push("/login");
-  }, 1000);
-} else {
-  toast.error("Invalid OTP. Please try again.");
-}
+      const data = await response.json();
 
-    } catch {
+      if (response.ok) {
+        // Store the token if provided
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+        
+        // Store user details if provided
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
+        
+        // Store announcements if needed
+        if (data.announcements) {
+          localStorage.setItem("announcements", JSON.stringify(data.announcements));
+        }
+        
+        toast.success("OTP verified successfully! Account Activated.");
+        
+        // Redirect after short delay so toast can show
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
+      } else {
+        // Handle error message from backend
+        const errorMessage = data.message || "Invalid or expired OTP. Please try again.";
+        toast.error(errorMessage);
+      }
+
+    } catch (error) {
+      console.error("OTP verification error:", error);
       toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleResendOtp = async () => {
+    if (!phone) {
+      toast.error("Phone number is missing.");
+      return;
+    }
+    
+    if (timer > 0) {
+      return; // Don't allow resend if timer is still running
+    }
+
+    setResendLoading(true);
+    try {
+      const response = await fetch("https://ctbackend.crobstacle.com/api/auth/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: phone }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("OTP has been resent successfully!");
+        setTimer(180); // Reset timer to 3 minutes
+        setOtp(["", "", "", "", "", ""]); // Clear OTP inputs
+      } else {
+        const errorMessage = data.message || "Failed to resend OTP. Please try again.";
+        toast.error(errorMessage);
+      }
+
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      toast.error("Network error. Please try again.");
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   const handleBackButtonClick = () => {
     window.history.back();
+  };
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timer]);
+
+  // Format timer to MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   useEffect(() => {
@@ -148,17 +216,26 @@ const Otp = () => {
                 onChange={(e) => handleChange(e, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 maxLength={1}
-                className="w-12 h-12 text-center text-xl bg-[#4d4d4c] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#fff]"
+                className="w-12 h-12 text-center text-xl text-white bg-[#4d4d4c] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#fff]"
                 inputMode="numeric"
               />
             ))}
           </div>
 
           <p className="font-light text-white mb-5">
-            <Link href="" className="underline underline-offset-2">
-              Resend OTP
-            </Link>{" "}
-            in <span className="text-[#c4933f]">02:59</span>
+            {timer > 0 ? (
+              <>
+                Resend OTP in <span className="text-[#c4933f]">{formatTime(timer)}</span>
+              </>
+            ) : (
+              <button
+                onClick={handleResendOtp}
+                disabled={resendLoading}
+                className="underline underline-offset-2 text-white hover:text-[#c4933f] disabled:opacity-50"
+              >
+                {resendLoading ? "Resending..." : "Resend OTP"}
+              </button>
+            )}
           </p>
           <button
             onClick={handleSubmit}

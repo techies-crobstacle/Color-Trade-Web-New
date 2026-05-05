@@ -3,17 +3,61 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
+interface Announcement {
+  _id: string;
+  title: string;
+  description: string;
+  state?: string;
+  scheduledAt?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface HomePopupProps {
   onClose: () => void;
 }
 
 export default function HomePopup({ onClose }: HomePopupProps) {
   const [visible, setVisible] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Slight delay so the entrance animation plays
     const timer = setTimeout(() => setVisible(true), 50);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`https://ctbackend.crobstacle.com/api/announcements?isActive=true`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data?.items) {
+          // Filter only active announcements
+          const activeAnnouncements = result.data.items.filter((ann: Announcement) => ann.isActive);
+          setAnnouncements(activeAnnouncements);
+        }
+      } catch (err) {
+        console.error('Error fetching announcements:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnnouncements();
   }, []);
 
   const handleClose = () => {
@@ -50,24 +94,42 @@ export default function HomePopup({ onClose }: HomePopupProps) {
 
         {/* Body */}
         <div className="px-5 py-5 flex flex-col gap-3">
-          <div className="bg-green-50 rounded-xl p-4 text-center">
-            
-          </div>
-
-          <div className="flex flex-col gap-2 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-              <span>1 Min, 3 Min &amp; 5 Min games available</span>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-              <span>Deposit &amp; withdraw anytime from your wallet</span>
+          ) : announcements.length > 0 ? (
+            <div className="rounded-xl p-4">
+              <div className="flex flex-col gap-2 text-sm text-white">
+                {announcements.map((announcement) => (
+                  <div key={announcement._id} className="flex items-start gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />
+                    <div className="flex-1">
+                      <span className="font-semibold text-[#C4933F]">{announcement.title}:</span>
+                      <span className="text-white"> {announcement.description}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-              <span>Check bet history to track your performance</span>
+          ) : (
+            <div className="bg-white rounded-xl p-4">
+              <div className="flex flex-col gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                  <span>1 Min, 3 Min &amp; 5 Min games available</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                  <span>Deposit &amp; withdraw anytime from your wallet</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                  <span>Check bet history to track your performance</span>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
       </div>

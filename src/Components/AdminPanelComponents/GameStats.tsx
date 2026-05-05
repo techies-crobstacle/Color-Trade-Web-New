@@ -250,7 +250,7 @@ export default function GameStatsTable() {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com';
   const API_ENDPOINT = `${API_BASE_URL}/api/admin/game-stats`;
-  const SET_WINNER_ENDPOINT = `${API_BASE_URL}/api/admin/set-winner`;
+  const SET_WINNER_ENDPOINT = `${API_BASE_URL}/api/admin/winner`;
 
   const fetchGameStats = async (silent = false) => {
     try {

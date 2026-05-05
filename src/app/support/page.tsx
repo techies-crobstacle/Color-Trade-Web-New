@@ -17,6 +17,8 @@ function Support() {
   const [type, setType] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [message, setMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [queriesData, setQueriesData] = useState<any[]>([]);
 
   const handleBackButtonClick = () => {
     window.history.back();
@@ -72,29 +74,66 @@ function Support() {
     }
   };
 
+  const handleContactClick = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("https://ctbackend.crobstacle.com/api/queries/my-queries", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, 
+        },
+      });
+
+      if (!res.ok) {
+        toast.error(`Failed to fetch queries: ${res.status} ${res.statusText}`);
+        return;
+      }
+
+      const data = await res.json();
+      console.log("Queries data:", data);
+      setQueriesData(data.queries || data.data || data);
+      setShowModal(true);
+    } catch (error) {
+      console.error("API error:", error);
+      toast.error("Something went wrong. Please try again later.");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#242424]">
-      {/* Section 1: Header */}
-      <div className="bg-[#333332] px-3 sm:px-5">
-        <div className="relative">
-          {/* Back button */}
-          <button
-            onClick={handleBackButtonClick}
-            className="absolute left-0 top-[13px] sm:top-[15px]"
-          >
-            <Image
-              src="/back-white.png"
-              alt="back-button"
-              width={100}
-              height={100}
-              className="w-4 sm:w-5"
-            />
-          </button>
-        </div>
-        <h1 className="text-lg sm:text-xl font-semibold text-white text-center py-3">
+  <div className="min-h-screen bg-[#242424]">
+    {/* Section 1: Header */}
+    <div className="bg-[#333332] px-3 sm:px-5">
+      <div className="relative flex items-center justify-between py-3">
+        {/* Back button - Left */}
+        <button
+          onClick={handleBackButtonClick}
+          className="w-4 sm:w-5"
+        >
+          <Image
+            src="/back-white.png"
+            alt="back-button"
+            width={100}
+            height={100}
+            className="w-4 sm:w-5"
+          />
+        </button>
+
+        {/* Contact Us - Center */}
+        <h1 className="text-lg sm:text-xl font-semibold text-white absolute left-1/2 transform -translate-x-1/2">
           Contact Us
         </h1>
+
+        {/* Contact Icon Button - Right */}
+        <button
+          onClick={handleContactClick}
+          className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center"
+        >
+          <img src="/contact.png" alt="my queries" className="w-full h-full" />
+        </button>
       </div>
+    </div>
+
 
       {/* Section 2: Form */}
       <div className="px-3 sm:px-5 py-6 sm:py-10">
@@ -110,7 +149,7 @@ function Support() {
               placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
+              required 
             />
           </div>
 
@@ -175,6 +214,64 @@ function Support() {
           </div>
         </form>
       </div>
+
+      {/* Modal for displaying queries */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <div className="bg-[#333332] rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-600">
+              <h2 className="text-lg sm:text-xl font-semibold text-white">My Queries</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-white hover:text-gray-300 text-2xl"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              {queriesData && queriesData.length > 0 ? (
+                <div className="space-y-4">
+                  {queriesData.map((query: any, index: number) => (
+                    <div key={index} className="bg-[#242424] p-4 rounded-lg">
+                      <div className="mb-2">
+                        <span className="text-gray-400 text-sm">Name: </span>
+                        <span className="text-white">{query.name}</span>
+                      </div>
+                      <div className="mb-2">
+                        <span className="text-gray-400 text-sm">Type: </span>
+                        <span className="text-white">{query.queryType}</span>
+                      </div>
+                      <div className="mb-2">
+                        <span className="text-gray-400 text-sm">Number: </span>
+                        <span className="text-white">{query.number}</span>
+                      </div>
+                      <div className="mb-2">
+                        <span className="text-gray-400 text-sm">Message: </span>
+                        <span className="text-white">{query.message}</span>
+                      </div>
+                      {query.status && (
+                        <div className="mt-2">
+                          <span className={`px-3 py-1 rounded-full text-xs ${
+                            query.status === 'pending' ? 'bg-yellow-600' : 
+                            query.status === 'resolved' ? 'bg-green-600' : 'bg-gray-600'
+                          }`}>
+                            {query.status}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400 text-center py-8">No queries found.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

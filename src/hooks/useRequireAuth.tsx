@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
 
 export default function useRequireAuth() {
   const router = useRouter();
@@ -11,7 +10,7 @@ export default function useRequireAuth() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      toast.info('You will first need to login to visit that page');
+      // Silent redirect without toast to avoid messy UX
       router.replace('/login');
       setChecked(false);
     } else {

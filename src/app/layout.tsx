@@ -57,6 +57,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ReactNode } from 'react';
 import BodyWrapper from '@/Components/CommonComponents/BodyWrapper';
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
