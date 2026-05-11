@@ -9,24 +9,34 @@ import {
   Users,
   CreditCard,
   Gamepad2,
+  BarChart3,
   HelpCircle,
   LayoutDashboard,
   Menu,
+  Settings as SettingsIcon,
+  Megaphone,
 } from 'lucide-react';
 import UsersTable from '@/Components/AdminPanelComponents/UsersScreen';
 import ProfileScreen from '@/Components/AdminPanelComponents/ProfileScreen';
 import InquiriesScreen from '@/Components/AdminPanelComponents/InquiriesScreen';
 import GameHistory from '@/Components/AdminPanelComponents/GameHistory';
 import GameStats from '@/Components/AdminPanelComponents/GameStats';
+import AdminEarningsDashboard from '@/Components/AdminPanelComponents/AdminEarningsDashboard';
+import Setting from '@/Components/AdminPanelComponents/Setting';
+import Announcement from '@/Components/AdminPanelComponents/Announcement';
 import { useRouter, useSearchParams } from 'next/navigation';
+import useRequireAdmin from '@/hooks/useRequireAdmin';
 
 const navItems = [
   { label: 'Profile', icon: <User size={18} /> },
   { label: 'Users', icon: <Users size={18} /> },
   { label: 'Transactions', icon: <CreditCard size={18} /> },
   { label: 'History', icon: <Gamepad2 size={18} /> },
+  { label: 'Earnings', icon: <BarChart3 size={18} /> },
   { label: 'Inquiries', icon: <HelpCircle size={18} /> },
-  { label: 'Game Stats', icon: <HelpCircle size={18} /> }
+  { label: 'Game Stats', icon: <HelpCircle size={18} /> },
+  { label: 'Announcement/News', icon: <Megaphone size={18} /> },
+  { label: 'Settings', icon: <SettingsIcon size={18} /> }
 ];
 
 const SidebarItem = ({
@@ -81,8 +91,14 @@ function DashboardContent() {
         return <InquiriesScreen />;
       case 'History':
         return <GameHistory />;
+      case 'Earnings':
+        return <AdminEarningsDashboard />;
       case 'Game Stats':
         return <GameStats />;
+      case 'Announcement/News':
+        return <Announcement />;
+      case 'Settings':
+        return <Setting />;
       default:
         return <div>Select a section</div>;
     }
@@ -157,8 +173,21 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
-  useRequireAuth();
+  const isAdmin = useRequireAdmin(); // ✅ Only this hook
 
+  // If checking or not admin, show clean loading screen
+  if (isAdmin === null || isAdmin === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-500 text-sm font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If admin (isAdmin === true), show dashboard
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">

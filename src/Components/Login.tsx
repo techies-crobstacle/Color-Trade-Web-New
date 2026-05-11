@@ -85,7 +85,7 @@ export default function Login() {
 
   return (
     <Suspense>
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-[#242424]">
         {/* Section 1 - Header */}
         <div className="flex-1">
           <div className="bg-[#333332] px-4 sm:px-5 pt-2 pb-4 sm:pb-6">

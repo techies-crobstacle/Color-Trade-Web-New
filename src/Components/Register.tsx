@@ -32,18 +32,32 @@ export default function Register() {
       number: phoneNumber,
     };
     try {
-      const response = await fetch("https://ctbackend.crobstacle.com/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "https://ctbackend.crobstacle.com/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.message || "Something went wrong");
+        if (
+          data.message &&
+          (data.message.toLowerCase().includes("already registered") ||
+            data.message.toLowerCase().includes("user exists") ||
+            data.message.toLowerCase().includes("user already"))
+        ) {
+          toast.error(
+            "This phone number is already registered. Please login or use a different number.",
+          );
+        } else {
+          toast.error(data.message || "Something went wrong");
+        }
       } else {
         toast.success(data.message || "Registration successful");
         setTimeout(() => {
@@ -54,7 +68,6 @@ export default function Register() {
       toast.error("Network error. Please try again later.");
     }
   };
-
   const handleBackButtonClick = () => {
     window.history.back();
   };
@@ -86,7 +99,9 @@ export default function Register() {
               alt="Logo"
             />
           </div>
-          <h1 className="text-lg sm:text-xl font-semibold text-white">Register</h1>
+          <h1 className="text-lg sm:text-xl font-semibold text-white">
+            Register
+          </h1>
           <p className="text-white text-xs sm:text-sm font-light mt-1.5 sm:mt-2">
             Please Register using your Mobile Number
           </p>
@@ -112,14 +127,16 @@ export default function Register() {
           {/* Name Field */}
           <div className="mb-4">
             <div className="flex items-center mb-2 sm:mb-3 gap-2">
-              <Image 
-                className="w-4 sm:w-5" 
-                src="/user.png" 
-                width={100} 
-                height={100} 
-                alt="User icon" 
+              <Image
+                className="w-4 sm:w-5"
+                src="/user.png"
+                width={100}
+                height={100}
+                alt="User icon"
               />
-              <h1 className="font-semibold text-sm text-white sm:text-base">Full Name</h1>
+              <h1 className="font-semibold text-sm text-white sm:text-base">
+                Full Name
+              </h1>
             </div>
             <input
               type="text"
@@ -134,18 +151,20 @@ export default function Register() {
           {/* Phone Number Field */}
           <div className="mb-4">
             <div className="flex items-center mb-2 sm:mb-3 gap-2">
-              <Image 
-                className="w-4 sm:w-5" 
-                src="/cellphone.png" 
-                width={100} 
-                height={100} 
-                alt="Phone icon" 
+              <Image
+                className="w-4 sm:w-5"
+                src="/cellphone.png"
+                width={100}
+                height={100}
+                alt="Phone icon"
               />
-              <h1 className="font-semibold text-sm text-white sm:text-base">Phone number</h1>
+              <h1 className="font-semibold text-sm text-white sm:text-base">
+                Phone number
+              </h1>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
               <select className="bg-[#4d4d4c] text-white p-2 rounded-md text-sm sm:text-base flex-shrink-0">
-                <option  value="+91">+91</option>
+                <option value="+91">+91</option>
               </select>
               <input
                 className="bg-[#4d4d4c] text-white p-2 rounded-md w-full text-sm sm:text-base"
@@ -162,14 +181,16 @@ export default function Register() {
           {/* Password Field */}
           <div className="relative mb-4">
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
-              <Image 
-                className="w-5 sm:w-6" 
-                src="/forgetpassword.png" 
-                width={100} 
-                height={100} 
-                alt="Password icon" 
+              <Image
+                className="w-5 sm:w-6"
+                src="/forgetpassword.png"
+                width={100}
+                height={100}
+                alt="Password icon"
               />
-              <h1 className="font-semibold text-white text-sm sm:text-base">Set password</h1>
+              <h1 className="font-semibold text-white text-sm sm:text-base">
+                Set password
+              </h1>
             </div>
             <input
               className="w-full bg-[#4d4d4c] text-white p-2 rounded-md text-sm sm:text-base pr-10"
@@ -192,14 +213,16 @@ export default function Register() {
           {/* Invite Code Field */}
           <div className="mb-4 sm:mb-5">
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
-              <Image 
-                className="w-5 sm:w-6" 
-                src="/invitation.png" 
-                width={100} 
-                height={100} 
-                alt="Invitation icon" 
+              <Image
+                className="w-5 sm:w-6"
+                src="/invitation.png"
+                width={100}
+                height={100}
+                alt="Invitation icon"
               />
-              <h1 className="font-semibold text-white text-sm sm:text-base">Invite code</h1>
+              <h1 className="font-semibold text-white text-sm sm:text-base">
+                Invite code
+              </h1>
             </div>
             <input
               type="text"
@@ -212,7 +235,11 @@ export default function Register() {
 
           {/* Privacy Agreement */}
           <div className="flex gap-2 my-3">
-            <input type="checkbox" className="w-4 sm:w-5 flex-shrink-0 mt-0.5" required />
+            <input
+              type="checkbox"
+              className="w-4 sm:w-5 flex-shrink-0 mt-0.5"
+              required
+            />
             <h1 className="font-semibold text-gray-500 text-xs sm:text-base">
               I have read & agree{" "}
               <span className="text-red-500 cursor-pointer">

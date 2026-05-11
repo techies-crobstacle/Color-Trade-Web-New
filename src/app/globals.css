@@ -129,3 +129,10 @@
   animation: marquee 10s linear infinite;
 }
 
+.dot {
+  transition: transform 0.2s;
+}
+@keyframes slideInRight {
+  0% { opacity: 0; transform: translateX(50px); }
+  100% { opacity: 1; transform: translateX(0); }
+}

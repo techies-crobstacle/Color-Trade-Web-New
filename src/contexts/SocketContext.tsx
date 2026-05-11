@@ -225,7 +225,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     const socketInstance = io(SOCKET_URL, {
       path: "/socket.io",
-      transports: ["polling", "websocket"], // Try polling first, then websocket
+      // Use websocket directly to avoid intermittent xhr polling failures behind proxies/CDNs
+      transports: ["websocket"],
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 5, // Limit attempts to prevent endless retries
@@ -243,11 +244,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setIsConnected(true);
       socketInstance.emit("get:balance");
       socketInstance.emit("get:rounds");
-
-      heartbeatInterval = setInterval(() => {
-        socketInstance.emit("get:rounds");
-        socketInstance.emit("get:balance");
-      }, 5000);
     });
 
     socketInstance.on("user:balance", (data) => {
@@ -264,7 +260,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         const roundsArray = Object.values(gamesObj).filter(
           (g): g is GameData => !!g && typeof g === "object" && "period" in g
         );
-        if (roundsArray.length > 0) setCurrentRounds(roundsArray);
+        // Keep round state in sync even when backend briefly returns an empty list.
+        setCurrentRounds(roundsArray);
 
         if (data.data.lastGames && typeof data.data.lastGames === "object") {
           setLastGames((prev) => {
@@ -284,7 +281,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         }
         return;
       }
-      if (data && Array.isArray(data.rounds) && data.rounds.length > 0) {
+      if (data && Array.isArray(data.rounds)) {
         setCurrentRounds(data.rounds);
       }
     });
@@ -363,7 +360,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
 
     socketInstance.on("connect_error", (err) => {
-      console.error("Socket connection error:", err.message, err);
+      console.warn("Socket connection error:", err?.message || "unknown");
       
       // Handle authentication errors
       if (err.message.includes("Invalid token") || err.message.includes("Unauthorized")) {
@@ -374,11 +371,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         window.location.href = "/login";
         return;
       }
-      // new
       // Handle other connection errors
       setIsConnected(false);
-      
-      // Log detailed error for debugging
       console.warn("WebSocket connection failed. This is usually temporary and auto-retry will handle it.");
     });
 

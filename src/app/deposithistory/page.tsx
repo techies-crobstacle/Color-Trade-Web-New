@@ -115,8 +115,8 @@ const DepositHistory = () => {
                     }`}
                   >
                     {transaction.amount < 0
-                      ? `- ₹${Math.abs(transaction.amount)}`
-                      : `+ ₹${transaction.amount}`}
+                      ? `- ₹${Math.abs(transaction.amount).toFixed(2)}`
+                      : `+ ₹${transaction.amount.toFixed(2)}`}
                   </p>
                 </div>
               </div>

@@ -122,11 +122,15 @@ function parsePeriodId(periodId: string): number | null {
 export default function Min3Game1() {
   const { socket, currentRounds, isConnected, lastGames, userBetResults } = useSocket();
 
-  const [game, setGame] = useState<GameData | null>(null);
-  const [timer, setTimer] = useState(ROUND_DURATION);
+  const [game, setGame] = useState<GameData | null>(buildFallbackRound());
+  const [timer, setTimer] = useState<number>(() => {
+    const now = new Date();
+    const elapsed = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) % ROUND_DURATION;
+    return ROUND_DURATION - elapsed;
+  });
   const [selected, setSelected] = useState<BetSelection>({ type: null, value: null });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentPeriod, setCurrentPeriod] = useState(getCurrentPeriodId());
  
   type HistoryItem = {
@@ -320,14 +324,6 @@ export default function Min3Game1() {
   };
 
   const getRemainingSeconds = (round: GameData | null) => {
-    if (round?.scheduledAt && round?.gameDuration) {
-      const normalized = round.scheduledAt.replace(" ", "T");
-      const startMs = new Date(normalized).getTime();
-      if (!Number.isNaN(startMs)) {
-        const endMs = startMs + round.gameDuration * 1000;
-        return Math.max(0, Math.ceil((endMs - Date.now()) / 1000));
-      }
-    }
     const now = new Date();
     const elapsed = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) % ROUND_DURATION;
     return ROUND_DURATION - elapsed;
@@ -404,7 +400,6 @@ export default function Min3Game1() {
   }, []);
 
   useEffect(() => {
-    if (currentRounds.length === 0) return;
     const foundRound = findActiveRound(currentRounds);
     if (foundRound) setGame(foundRound);
     else setGame((prev) => prev ?? buildFallbackRound());
@@ -471,8 +466,7 @@ export default function Min3Game1() {
   useEffect(() => {
     if (!isConnected) return;
     socket?.emit("get:rounds");
-    const syncInterval = setInterval(() => { socket?.emit("get:rounds"); }, 5000);
-    return () => clearInterval(syncInterval);
+    // Removed 5s interval polling to prevent server overwhelm
   }, [isConnected, socket]);
 
   const disabled = timer <= 15;

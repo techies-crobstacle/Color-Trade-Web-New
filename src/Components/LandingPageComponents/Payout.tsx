@@ -90,7 +90,7 @@ export default function WinningInfo() {
             </div>
             <div className="basis-4/12 text-right">
               <p className="text-[#C4933F] font-bold text-sm sm:text-base">
-                ₹{winner.amount.toLocaleString()}
+                ₹{winner.amount.toFixed(2)}
               </p>
               <p className="text-xs sm:text-sm text-white font-semibold">Winning amount</p>
             </div>

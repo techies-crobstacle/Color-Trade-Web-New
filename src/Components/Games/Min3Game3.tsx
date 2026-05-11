@@ -39,14 +39,14 @@ const API_BASE_URL =
 
 function buildFallbackRound(): GameData {
   const now = new Date();
-  const elapsedSeconds = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) % ROUND_DURATION;
-  const remainingSeconds = ROUND_DURATION - elapsedSeconds;
-  const scheduledAt = new Date(now.getTime() + remainingSeconds * 1000).toISOString();
+  const minutes = Math.floor(now.getMinutes() / 5) * 5;
+  const periodStart = new Date(now);
+  periodStart.setMinutes(minutes, 0, 0);
   return {
     _id: `fallback-${getCurrentPeriodId()}`,
     period: getCurrentPeriodId(),
     gameDuration: ROUND_DURATION,
-    scheduledAt,
+    scheduledAt: periodStart.toISOString(),
     status: "scheduled",
     winningNumber: null,
     color: [],
@@ -113,11 +113,15 @@ function parsePeriodId(periodId: string): number | null {
 export default function Min3Game3() {
   const { socket, currentRounds, isConnected, lastGames, userBetResults } = useSocket();
 
-  const [game, setGame] = useState<GameData | null>(null);
-  const [timer, setTimer] = useState(ROUND_DURATION);
+  const [game, setGame] = useState<GameData | null>(buildFallbackRound());
+  const [timer, setTimer] = useState<number>(() => {
+    const now = new Date();
+    const elapsed = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) % ROUND_DURATION;
+    return ROUND_DURATION - elapsed;
+  });
   const [selected, setSelected] = useState<BetSelection>({ type: null, value: null });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentPeriod, setCurrentPeriod] = useState(getCurrentPeriodId());
 
   type HistoryItem = {
@@ -380,7 +384,6 @@ export default function Min3Game3() {
   }, []);
 
   useEffect(() => {
-    if (currentRounds.length === 0) return;
     const foundRound = findActiveRound(currentRounds);
     if (foundRound) setGame(foundRound);
     else setGame((prev) => prev ?? buildFallbackRound());
@@ -447,8 +450,7 @@ export default function Min3Game3() {
   useEffect(() => {
     if (!isConnected) return;
     socket?.emit("get:rounds");
-    const syncInterval = setInterval(() => { socket?.emit("get:rounds"); }, 5000);
-    return () => clearInterval(syncInterval);
+    // Removed 5s interval polling to prevent server overwhelm
   }, [isConnected, socket]);
 
   const disabled = timer <= 15;

@@ -111,8 +111,8 @@ export default function WithHistory() {
                   </h1>
                   <p className="text-sm sm:text-md font-semibold mt-1 text-red-500">
                     {transaction.amount < 0
-                      ? `- ₹${Math.abs(transaction.amount)}`
-                      : `- ₹${transaction.amount}`}
+                      ? `- ₹${Math.abs(transaction.amount).toFixed(2)}`
+                      : `- ₹${transaction.amount.toFixed(2)}`}
                   </p>
                 </div>
               </div>

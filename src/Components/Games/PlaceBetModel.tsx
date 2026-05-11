@@ -325,7 +325,7 @@ export default function PlaceBetModel({
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                   } ${disabled || isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                 >
-                  ₹{amount}
+                  ₹{amount.toFixed(2)}
                 </button>
               ))}
             </div>
@@ -410,7 +410,7 @@ export default function PlaceBetModel({
           <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-5 sm:mb-6">
             <div className="flex justify-between items-center text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">
               <span>Base Amount:</span>
-              <span className="font-semibold">₹{selectedAmount}</span>
+              <span className="font-semibold">₹{selectedAmount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">
               <span>Multiplier:</span>
@@ -427,7 +427,7 @@ export default function PlaceBetModel({
             <div className="border-t pt-2 mt-2">
               <div className="flex justify-between items-center font-bold text-orange-500 text-base sm:text-lg">
                 <span>Total Bet:</span>
-                <span>₹{totalBet}</span>
+                <span>₹{totalBet.toFixed(2)}</span>
               </div>
             </div>
           </div>

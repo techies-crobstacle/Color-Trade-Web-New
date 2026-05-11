@@ -119,8 +119,8 @@ const TransactionHistory = () => {
                   }`}
                 >
                   {transaction.type === "debit"
-                    ? `- ₹${Math.abs(transaction.amount)}`
-                    : `+ ₹${transaction.amount}`}
+                    ? `- ₹${Math.abs(transaction.amount).toFixed(2)}`
+                    : `+ ₹${transaction.amount.toFixed(2)}`}
                 </p>
               </div>
             </div>
