@@ -55,12 +55,7 @@ export default function GameHistory() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState<"1m" | "3m" | "5m">("1m");
-=======
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
->>>>>>> 1f1e0df3bc66eade3a35d58fb54f1db0434a6caa
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);

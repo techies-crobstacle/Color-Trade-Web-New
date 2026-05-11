@@ -277,7 +277,7 @@ export default function TransactionTable() {
       {/* Control Strip */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2 rounded-xl mb-1 shadow-sm border border-gray-200">
          <div className="flex items-center gap-4 pl-3">
-             <span className="text-sm font-semibold text-gray-700 bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200">Total: {pagination.totalTransactions} Items</span>
+             <span className="text-sm font-semibold text-gray-700 bg-blue-50 px-3 py-1 rounded-md border border-blue-200">Total: {pagination.totalTransactions} Items</span>
          </div>
          <div className="flex items-center gap-3">
            <div className="flex items-center gap-2">
@@ -437,101 +437,6 @@ export default function TransactionTable() {
         </div>
       </div>
 
-<<<<<<< HEAD
     </div>
-=======
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel>Sort</InputLabel>
-          <Select value={sortOrder} label="Sort" onChange={(e) => setSortOrder(e.target.value)}>
-            <MenuItem value="default">Default</MenuItem>
-            <MenuItem value="username-asc">Username (A-Z)</MenuItem>
-            <MenuItem value="username-desc">Username (Z-A)</MenuItem>
-            <MenuItem value="amount-low-high">Amount ↑</MenuItem>
-            <MenuItem value="amount-high-low">Amount ↓</MenuItem>
-          </Select>
-        </FormControl>
-
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel>Payment Mode</InputLabel>
-          <Select
-            value={selectedMode}
-            label="Payment Mode"
-            onChange={(e) => {
-              setSelectedMode(e.target.value);
-              setCurrentPage(1);
-            }}
-          >
-            {paymentModes.map((mode, index) => (
-              <MenuItem key={index} value={mode}>
-                {mode}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
-            <ArrowBack />
-          </Button>
-          <Typography variant="body2">
-            Page {currentPage} of {totalPages}
-          </Typography>
-          <Button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            <ArrowForward />
-          </Button>
-        </Box>
-      </Box>
-
-      <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
-        <Table>
-          <TableHead sx={{ backgroundColor: '#1f1f1f' }}>
-            <TableRow>
-              <TableCell sx={{ color: '#fff' }}>Username</TableCell>
-              {/* <TableCell sx={{ color: '#fff' }}>User ID</TableCell> */}
-              <TableCell sx={{ color: '#fff' }}>Transaction ID</TableCell>
-              <TableCell sx={{ color: '#fff' }}>Amount</TableCell>
-              <TableCell sx={{ color: '#fff' }}>Mode</TableCell>
-              <TableCell sx={{ color: '#fff' }}>Status</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {displayedTransactions.length > 0 ? (
-              displayedTransactions.map((txn, index) => (
-                <TableRow key={index} hover>
-                  <TableCell>{txn.username}</TableCell>
-                  {/* <TableCell>{txn.userid}</TableCell> */}
-                  <TableCell>{txn.transactionId}</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>{txn.amount}</TableCell>
-                  <TableCell>{txn.mode}</TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: 600,
-                      color:
-                        txn.status === 'Success'
-                          ? '#15803d'
-                          : txn.status === 'Pending'
-                          ? '#d97706'
-                          : '#b91c1c',
-                    }}
-                  >
-                    {txn.status}
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} align="center">
-                  No transactions found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
->>>>>>> 1f1e0df3bc66eade3a35d58fb54f1db0434a6caa
   );
 }
