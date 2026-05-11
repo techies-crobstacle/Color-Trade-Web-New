@@ -39,6 +39,7 @@ interface AffiliateSettings {
   updatedBy?: string;
 }
 
+<<<<<<< HEAD
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com';
 
 const normalizeSettingsPayload = (raw: any): AffiliateSettings | null => {
@@ -94,6 +95,8 @@ const normalizeSettingsPayload = (raw: any): AffiliateSettings | null => {
   };
 };
 
+=======
+>>>>>>> 1f1e0df3bc66eade3a35d58fb54f1db0434a6caa
 const Setting = () => {
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [settings, setSettings] = useState<AffiliateSettings | null>(null);
@@ -109,7 +112,11 @@ const Setting = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       
+<<<<<<< HEAD
       const response = await fetch(`${API_BASE_URL}/api/affiliate/statistics`, {
+=======
+      const response = await fetch(`https://ctbackend.crobstacle.com/api/affiliate/statistics`, {
+>>>>>>> 1f1e0df3bc66eade3a35d58fb54f1db0434a6caa
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -136,10 +143,16 @@ const Setting = () => {
   const fetchAffiliateSettings = useCallback(async () => {
     try {
       setSettingsLoading(true);
+<<<<<<< HEAD
       setSettingsError(null);
       const token = localStorage.getItem('token');
       
       const response = await fetch(`${API_BASE_URL}/api/admin/commissions`, {
+=======
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`https://ctbackend.crobstacle.com/api/affiliate/settings`, {
+>>>>>>> 1f1e0df3bc66eade3a35d58fb54f1db0434a6caa
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -149,6 +162,7 @@ const Setting = () => {
 
       const result = await response.json();
 
+<<<<<<< HEAD
       if (response.ok && result.status === 'success') {
         const normalized = normalizeSettingsPayload(result.data);
         if (!normalized) {
@@ -156,6 +170,10 @@ const Setting = () => {
           return;
         }
         setSettings(normalized);
+=======
+      if (result.status === 'success') {
+        setSettings(result.data);
+>>>>>>> 1f1e0df3bc66eade3a35d58fb54f1db0434a6caa
         setSettingsError(null);
       } else {
         setSettingsError(result.message || 'Failed to fetch settings');
@@ -173,11 +191,18 @@ const Setting = () => {
 
     try {
       setSaving(true);
+<<<<<<< HEAD
       setSettingsError(null);
       setSuccessMessage(null);
       const token = localStorage.getItem('token');
       
       const response = await fetch(`${API_BASE_URL}/api/admin/commissions`, {
+=======
+      setSuccessMessage(null);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`https://ctbackend.crobstacle.com/api/affiliate/settings`, {
+>>>>>>> 1f1e0df3bc66eade3a35d58fb54f1db0434a6caa
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -195,6 +220,7 @@ const Setting = () => {
 
       const result = await response.json();
 
+<<<<<<< HEAD
       if (response.ok && result.status === 'success') {
         const normalized = normalizeSettingsPayload(result.data);
         if (!normalized) {
@@ -202,6 +228,10 @@ const Setting = () => {
           return;
         }
         setSettings(normalized);
+=======
+      if (result.status === 'success') {
+        setSettings(result.data);
+>>>>>>> 1f1e0df3bc66eade3a35d58fb54f1db0434a6caa
         setSuccessMessage('Settings updated successfully!');
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
@@ -280,7 +310,11 @@ const Setting = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-sm font-medium">Commissions Paid</p>
+<<<<<<< HEAD
               <p className="text-3xl font-bold mt-2">₹{stats.totalCommissionsPaid.toFixed(2)}</p>
+=======
+              <p className="text-3xl font-bold mt-2">₹{stats.totalCommissionsPaid}</p>
+>>>>>>> 1f1e0df3bc66eade3a35d58fb54f1db0434a6caa
             </div>
             <DollarSign className="w-12 h-12 text-purple-200" />
           </div>
