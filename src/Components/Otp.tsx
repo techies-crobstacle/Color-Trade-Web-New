@@ -4,7 +4,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "react-toastify";
 
-
 // Make sure you have <ToastContainer /> somewhere in your root layout/page
 
 const Otp = () => {
@@ -16,7 +15,10 @@ const Otp = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [timer, setTimer] = useState(180); // 3 minutes in seconds
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number,
+  ) => {
     const value = e.target.value;
     if (/^[0-9]$/.test(value) || value === "") {
       const newOtp = [...otp];
@@ -28,7 +30,29 @@ const Otp = () => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+  const handlePaste = (
+    e: React.ClipboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "");
+    if (!paste) return;
+    const newOtp = [...otp];
+    for (let i = 0; i < 6 - index && i < paste.length; i++) {
+      newOtp[index + i] = paste[i];
+    }
+    setOtp(newOtp);
+    // Focus the last filled input
+    setTimeout(() => {
+      const nextIndex = Math.min(index + paste.length - 1, 5);
+      document.getElementById(`otp-input-${nextIndex}`)?.focus();
+    }, 0);
+    e.preventDefault();
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
     if (e.key === "Backspace" && otp[index] === "") {
       if (index > 0) {
         document.getElementById(`otp-input-${index - 1}`)?.focus();
@@ -49,11 +73,14 @@ const Otp = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("https://ctbackend.crobstacle.com/api/auth/verifyotp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number: phone, otp: otpValue }),
-      });
+      const response = await fetch(
+        "https://ctbackend.crobstacle.com/api/auth/verifyotp",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ number: phone, otp: otpValue }),
+        },
+      );
 
       const data = await response.json();
 
@@ -62,29 +89,32 @@ const Otp = () => {
         if (data.token) {
           localStorage.setItem("token", data.token);
         }
-        
+
         // Store user details if provided
         if (data.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
         }
-        
+
         // Store announcements if needed
         if (data.announcements) {
-          localStorage.setItem("announcements", JSON.stringify(data.announcements));
+          localStorage.setItem(
+            "announcements",
+            JSON.stringify(data.announcements),
+          );
         }
-        
+
         toast.success("OTP verified successfully! Account Activated.");
-        
+
         // Redirect after short delay so toast can show
         setTimeout(() => {
           router.push("/login");
         }, 1500);
       } else {
         // Handle error message from backend
-        const errorMessage = data.message || "Invalid or expired OTP. Please try again.";
+        const errorMessage =
+          data.message || "Invalid or expired OTP. Please try again.";
         toast.error(errorMessage);
       }
-
     } catch (error) {
       console.error("OTP verification error:", error);
       toast.error("Network error. Please try again.");
@@ -98,18 +128,21 @@ const Otp = () => {
       toast.error("Phone number is missing.");
       return;
     }
-    
+
     if (timer > 0) {
       return; // Don't allow resend if timer is still running
     }
 
     setResendLoading(true);
     try {
-      const response = await fetch("https://ctbackend.crobstacle.com/api/auth/resend-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number: phone }),
-      });
+      const response = await fetch(
+        "https://ctbackend.crobstacle.com/api/auth/resend-otp",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ number: phone }),
+        },
+      );
 
       const data = await response.json();
 
@@ -118,10 +151,10 @@ const Otp = () => {
         setTimer(180); // Reset timer to 3 minutes
         setOtp(["", "", "", "", "", ""]); // Clear OTP inputs
       } else {
-        const errorMessage = data.message || "Failed to resend OTP. Please try again.";
+        const errorMessage =
+          data.message || "Failed to resend OTP. Please try again.";
         toast.error(errorMessage);
       }
-
     } catch (error) {
       console.error("Resend OTP error:", error);
       toast.error("Network error. Please try again.");
@@ -186,7 +219,8 @@ const Otp = () => {
           </div>
           <h1 className="text-xl font-semibold text-white">Verify OTP</h1>
           <p className="text-white text-sm font-light mt-2">
-            Enter your OTP received on the registered Mobile Number for verification
+            Enter your OTP received on the registered Mobile Number for
+            verification
           </p>
         </div>
       </div>
@@ -194,7 +228,13 @@ const Otp = () => {
       {/* Section 2 */}
       <div className="p-5">
         <div className="flex flex-col items-center pb-4 border-b-2 border-[#c4933f] mb-8">
-          <Image className="w-6" src="/cellphone.png" width={432} height={578} alt="" />
+          <Image
+            className="w-6"
+            src="/cellphone.png"
+            width={432}
+            height={578}
+            alt=""
+          />
           <h1 className="text-center text-[#c4933f] text-lg font-semibold">
             Verify your OTP!
           </h1>
@@ -215,6 +255,7 @@ const Otp = () => {
                 value={digit}
                 onChange={(e) => handleChange(e, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
+                onPaste={(e) => handlePaste(e, index)}
                 maxLength={1}
                 className="w-12 h-12 text-center text-xl text-white bg-[#4d4d4c] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#fff]"
                 inputMode="numeric"
@@ -225,7 +266,8 @@ const Otp = () => {
           <p className="font-light text-white mb-5">
             {timer > 0 ? (
               <>
-                Resend OTP in <span className="text-[#c4933f]">{formatTime(timer)}</span>
+                Resend OTP in{" "}
+                <span className="text-[#c4933f]">{formatTime(timer)}</span>
               </>
             ) : (
               <button

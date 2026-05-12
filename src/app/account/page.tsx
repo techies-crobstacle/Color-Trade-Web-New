@@ -198,6 +198,8 @@ export default function AccountPage() {
               { label: "Settings", path: "/changepassword", icon: "/setting.png" },
               { label: "About Us", path: "/about", icon: "/about.png" },
               { label: "Support", path: "/support", icon: "/ticket.png" },
+              { label: "My-referral", path: "/referral", icon: "/mreferral.png" },
+              
             ].map(({ label, path, icon }) => (
               <button
                 key={path}

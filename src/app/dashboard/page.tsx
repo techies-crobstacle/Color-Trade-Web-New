@@ -9,7 +9,6 @@ import {
   Users,
   CreditCard,
   Gamepad2,
-  BarChart3,
   HelpCircle,
   LayoutDashboard,
   Menu,
@@ -21,7 +20,6 @@ import ProfileScreen from '@/Components/AdminPanelComponents/ProfileScreen';
 import InquiriesScreen from '@/Components/AdminPanelComponents/InquiriesScreen';
 import GameHistory from '@/Components/AdminPanelComponents/GameHistory';
 import GameStats from '@/Components/AdminPanelComponents/GameStats';
-import AdminEarningsDashboard from '@/Components/AdminPanelComponents/AdminEarningsDashboard';
 import Setting from '@/Components/AdminPanelComponents/Setting';
 import Announcement from '@/Components/AdminPanelComponents/Announcement';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -32,7 +30,6 @@ const navItems = [
   { label: 'Users', icon: <Users size={18} /> },
   { label: 'Transactions', icon: <CreditCard size={18} /> },
   { label: 'History', icon: <Gamepad2 size={18} /> },
-  { label: 'Earnings', icon: <BarChart3 size={18} /> },
   { label: 'Inquiries', icon: <HelpCircle size={18} /> },
   { label: 'Game Stats', icon: <HelpCircle size={18} /> },
   { label: 'Announcement/News', icon: <Megaphone size={18} /> },
@@ -91,8 +88,6 @@ function DashboardContent() {
         return <InquiriesScreen />;
       case 'History':
         return <GameHistory />;
-      case 'Earnings':
-        return <AdminEarningsDashboard />;
       case 'Game Stats':
         return <GameStats />;
       case 'Announcement/News':
@@ -115,7 +110,7 @@ function DashboardContent() {
     <div className="min-h-screen flex bg-gray-50 text-gray-800">
       {/* Sidebar */}
       <aside
-        className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-white shadow-md p-4 transition-all duration-300 space-y-4`}
+        className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-white shadow-md p-4 transition-all duration-300 space-y-4 sticky top-0 h-screen overflow-y-auto`}
       >
         <div className="flex justify-between items-center mb-6">
           {!sidebarCollapsed && (
