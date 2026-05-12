@@ -67,9 +67,16 @@ function isOpenRound(status: string) {
 
 function findActiveRound(games: GameData[]) {
   const currentPeriodId = getCurrentPeriodId();
-  let foundRound = games.find((r) => r.period === currentPeriodId && isOpenRound(r.status));
-  if (!foundRound) foundRound = games.find((r) => r.period.startsWith("5m-") && isOpenRound(r.status));
-  return foundRound || null;
+  const openRounds = games.filter((r) => r.period.startsWith("5m-") && isOpenRound(r.status));
+  const exactRound = openRounds.find((r) => r.period === currentPeriodId);
+  if (exactRound) return exactRound;
+  if (openRounds.length === 0) return null;
+  return openRounds
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()
+    )[0];
 }
 
 function Loader() {
@@ -149,6 +156,7 @@ export default function Min3Game3() {
   const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const betMsgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastGamesRef = useRef(lastGames);
+  const currentRoundsRef = useRef(currentRounds);
   const userBetResultsRef = useRef(userBetResults);
   const winningHistoryRef = useRef<HistoryItem[]>([]);
   const userBetPeriodsRef = useRef<Set<string>>(new Set());
@@ -170,6 +178,23 @@ export default function Min3Game3() {
       // Silently ignore localStorage errors
     }
   };
+
+  const getStoredBetPeriods = (): Set<string> => {
+    try {
+      const stored = localStorage.getItem('userBetPeriods_5m');
+      return stored ? new Set<string>(JSON.parse(stored)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  };
+
+  const saveBetPeriods = (periods: Set<string>) => {
+    try {
+      localStorage.setItem('userBetPeriods_5m', JSON.stringify(Array.from(periods)));
+    } catch {
+      // Silently ignore localStorage errors
+    }
+  };
   
   const initializeShownPeriods = () => {
     const storedPeriods = getStoredShownPeriods();
@@ -179,6 +204,14 @@ export default function Min3Game3() {
   };
   
   const resultShownPeriodsRef = useRef<Set<string>>(initializeShownPeriods());
+
+  useEffect(() => {
+    userBetPeriodsRef.current = getStoredBetPeriods();
+  }, []);
+
+  useEffect(() => {
+    currentRoundsRef.current = currentRounds;
+  }, [currentRounds]);
 
   // Period ticker — also closes popup when period rolls over
   useEffect(() => {
@@ -373,7 +406,6 @@ export default function Min3Game3() {
         userBetPeriodsRef.current.has(period) // Only if user placed bet
       ) {
         tryShowPopup(period); // Show with complete outcome data
-        break;
       }
     }
   }, [userBetResults]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -469,8 +501,19 @@ export default function Min3Game3() {
       betMsgTimerRef.current = setTimeout(() => setBetMsg(null), 3000);
       return;
     }
+    const activeRound = findActiveRound(currentRounds);
+    let bettingPeriod = game.period;
+    if (activeRound?.period) {
+      bettingPeriod = activeRound.period;
+      setGame(activeRound);
+    } else if (game._id.startsWith("fallback-")) {
+      if (betMsgTimerRef.current) clearTimeout(betMsgTimerRef.current);
+      setBetMsg({ text: "Round is opening, please try again", ok: false });
+      betMsgTimerRef.current = setTimeout(() => setBetMsg(null), 2500);
+      socket?.emit("get:rounds");
+      return;
+    }
     const payload = {
-      period: game.period,
       betAmount: amount,
       betType: selected.type,
       betValue: selected.type === "size" && typeof selected.value === "string"
@@ -479,20 +522,45 @@ export default function Min3Game3() {
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Not logged in");
-      const res = await fetch(`${API_BASE_URL}/api/game/bet`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || "Bet placement failed");
+      let placed = false;
+      let errorMessage = "Bet placement failed";
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const res = await fetch(`${API_BASE_URL}/api/game/bet`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ ...payload, period: bettingPeriod }),
+        });
+
+        const responseData = await res.json().catch(() => null);
+
+        if (res.ok) {
+          placed = true;
+          break;
+        }
+
+        errorMessage = responseData?.message || "Bet placement failed";
+        const shouldRetry =
+          attempt === 0 && /no active round found for this period/i.test(errorMessage);
+
+        if (!shouldRetry) break;
+
+        socket?.emit("get:rounds");
+        await new Promise((resolve) => setTimeout(resolve, 450));
+        const refreshedRound = findActiveRound(currentRoundsRef.current);
+        if (refreshedRound?.period) {
+          bettingPeriod = refreshedRound.period;
+          setGame(refreshedRound);
+        }
       }
-      await res.json();
+
+      if (!placed) throw new Error(errorMessage);
+
       if (betMsgTimerRef.current) clearTimeout(betMsgTimerRef.current);
       setBetMsg({ text: "Bet placed successfully", ok: true });
       betMsgTimerRef.current = setTimeout(() => setBetMsg(null), 3000);
-      userBetPeriodsRef.current.add(game.period);
+      userBetPeriodsRef.current.add(bettingPeriod);
+      saveBetPeriods(userBetPeriodsRef.current);
       setIsModalOpen(false);
       setSelected({ type: null, value: null });
     } catch (error: unknown) {

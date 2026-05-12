@@ -152,10 +152,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Outcome: bet history is ground truth; fall back to raw socket payload
-    const outcome =
-      betMatch?.status === "won" ? "won" :
-      betMatch?.status === "lost" ? "lost" :
-      raw.status ?? raw.result ?? "lost";
+    let outcome = "lost";
+    const bStatus = (betMatch?.status || betMatch?.result || "").toLowerCase();
+    const rStatus = (raw.status || raw.result || "").toLowerCase();
+    if (bStatus === "won" || bStatus === "win" || rStatus === "won" || rStatus === "win") {
+      outcome = "won";
+    }
 
     const winningNumber =
       gameMatch?.result?.number ??
@@ -244,6 +246,45 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setIsConnected(true);
       socketInstance.emit("get:balance");
       socketInstance.emit("get:rounds");
+
+      // Recover up-to-date user bet history on reconnect to show missed popups
+      fetch(`${API_BASE}/api/users/history?limit=30`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const bets = Array.isArray(data?.data?.bets)
+            ? data.data.bets
+            : Array.isArray(data?.data?.data) ? data.data.data
+            : Array.isArray(data?.data) ? data.data : [];
+            
+          if (bets.length > 0) {
+            setUserBetResults((prev) => {
+              const next = { ...prev };
+              let changed = false;
+              for (const b of bets) {
+                if (b?.period && typeof b.period === "string") {
+                  const st = (b.status || b.result || "").toLowerCase();
+                  const out = st === "won" || st === "win" ? "won" : 
+                              st === "lost" || st === "lose" ? "lost" : "pending";
+                  if (out !== "pending" && !next[b.period]) {
+                    next[b.period] = {
+                      period: b.period,
+                      result: out,
+                      winnings: b.winnings ?? 0,
+                      winningNumber: b.winningNumber ?? null,
+                      winningColor: b.winningColor ?? [],
+                      winningSize: b.winningSize ?? null,
+                    };
+                    changed = true;
+                  }
+                }
+              }
+              return changed ? next : prev;
+            });
+          }
+        })
+        .catch(console.error);
     });
 
     socketInstance.on("user:balance", (data) => {

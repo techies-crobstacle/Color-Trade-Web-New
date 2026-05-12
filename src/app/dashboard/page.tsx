@@ -22,6 +22,7 @@ import GameHistory from '@/Components/AdminPanelComponents/GameHistory';
 import GameStats from '@/Components/AdminPanelComponents/GameStats';
 import Setting from '@/Components/AdminPanelComponents/Setting';
 import Announcement from '@/Components/AdminPanelComponents/Announcement';
+import AdminEarningsDashboard from '@/Components/AdminPanelComponents/AdminEarningsDashboard';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useRequireAdmin from '@/hooks/useRequireAdmin';
 
@@ -29,6 +30,7 @@ const navItems = [
   { label: 'Profile', icon: <User size={18} /> },
   { label: 'Users', icon: <Users size={18} /> },
   { label: 'Transactions', icon: <CreditCard size={18} /> },
+  { label: 'Earnings', icon: <CreditCard size={18} /> },
   { label: 'History', icon: <Gamepad2 size={18} /> },
   { label: 'Inquiries', icon: <HelpCircle size={18} /> },
   { label: 'Game Stats', icon: <HelpCircle size={18} /> },
@@ -84,6 +86,8 @@ function DashboardContent() {
         return <UsersTable />;
       case 'Transactions':
         return <TransactionTable />;
+      case 'Earnings':
+        return <AdminEarningsDashboard />;
       case 'Inquiries':
         return <InquiriesScreen />;
       case 'History':
