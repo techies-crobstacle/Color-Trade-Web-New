@@ -155,6 +155,7 @@ export default function Min3Game3() {
   const mountDoneRef = useRef(false);
   const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const betMsgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const staleRoundReloadedForRef = useRef<string | null>(null);
   const lastGamesRef = useRef(lastGames);
   const currentRoundsRef = useRef(currentRounds);
   const userBetResultsRef = useRef(userBetResults);
@@ -212,6 +213,10 @@ export default function Min3Game3() {
   useEffect(() => {
     currentRoundsRef.current = currentRounds;
   }, [currentRounds]);
+
+  useEffect(() => {
+    staleRoundReloadedForRef.current = null;
+  }, [currentPeriod]);
 
   // Period ticker — also closes popup when period rolls over
   useEffect(() => {
@@ -421,6 +426,31 @@ export default function Min3Game3() {
     else setGame((prev) => prev ?? buildFallbackRound());
     setLoading(false);
   }, [currentRounds]);
+
+  useEffect(() => {
+    if (!isConnected) return;
+    if (timer > ROUND_DURATION - 5) return;
+
+    const activeRound = findActiveRound(currentRoundsRef.current);
+    const resolvedPeriod = activeRound?.period || game?.period || currentPeriod;
+    if (resolvedPeriod === currentPeriod) return;
+    if (staleRoundReloadedForRef.current === currentPeriod) return;
+
+    staleRoundReloadedForRef.current = currentPeriod;
+    socket?.emit("get:rounds");
+
+    const timeout = setTimeout(() => {
+      const refreshedRound = findActiveRound(currentRoundsRef.current);
+      if (refreshedRound?.period === currentPeriod) {
+        setGame(refreshedRound);
+        return;
+      }
+
+      window.location.reload();
+    }, 1200);
+
+    return () => clearTimeout(timeout);
+  }, [currentPeriod, timer, game?.period, isConnected, socket]);
 
   // ─── Countdown timer ──────────────────────────────────────────────────────
   useEffect(() => {

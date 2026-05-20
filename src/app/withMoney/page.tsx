@@ -9,6 +9,26 @@ import { FaRupeeSign, FaLock } from "react-icons/fa";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
 
+type BankDetails = {
+  accountName: string;
+  accountNumber: string;
+  ifscCode: string;
+  bankName: string;
+  city: string;
+  province: string;
+};
+
+const EMPTY_BANK_DETAILS: BankDetails = {
+  accountName: "",
+  accountNumber: "",
+  ifscCode: "",
+  bankName: "",
+  city: "",
+  province: "",
+};
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+
 const Page = () => {
   const { setShowHeaderFooter } = useLayout();
   const { balance, refreshBalance } = useSocket();
@@ -16,41 +36,107 @@ const Page = () => {
   const [amount, setAmount] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingBankDetails, setLoadingBankDetails] = useState(true);
 
-  const [bankDetails, setBankDetails] = useState({
-    accountName: "",
-    accountNumber: "",
-    ifscCode: "",
-    bankName: "",
-    city: "",
-    province: "",
-  });
+  const [bankDetails, setBankDetails] = useState<BankDetails>(EMPTY_BANK_DETAILS);
+  const [savedBankDetails, setSavedBankDetails] = useState<BankDetails | null>(null);
+  const [useSavedBankDetails, setUseSavedBankDetails] = useState(true);
+  const [saveBankDetailsForFuture, setSaveBankDetailsForFuture] = useState(true);
+  const [ifscLookupLoading, setIfscLookupLoading] = useState(false);
+  const [ifscLookupMessage, setIfscLookupMessage] = useState("");
 
   useEffect(() => {
     setShowHeaderFooter(false);
 
     const fetchBankDetails = async () => {
+      setLoadingBankDetails(true);
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("https://ctbackend.crobstacle.com/api/user/bank-details", {
+        const response = await fetch(`${API_BASE_URL}/api/users/bank-details`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
 
-        if (response.ok && data.banks && data.banks.length > 0) {
-          const firstBank = data.banks[0];
-          setBankDetails(firstBank);
+        if (response.ok && data?.data?.hasBankDetails && data?.data?.bankDetails) {
+          const fetchedBankDetails: BankDetails = {
+            accountName: data.data.bankDetails.accountName || "",
+            accountNumber: data.data.bankDetails.accountNumber || "",
+            ifscCode: data.data.bankDetails.ifscCode || "",
+            bankName: data.data.bankDetails.bankName || "",
+            city: data.data.bankDetails.city || "",
+            province: data.data.bankDetails.province || "",
+          };
+          setSavedBankDetails(fetchedBankDetails);
+          setBankDetails(fetchedBankDetails);
+          setUseSavedBankDetails(true);
         } else {
-          toast.info("Please enter your bank details");
+          setSavedBankDetails(null);
+          setBankDetails(EMPTY_BANK_DETAILS);
+          setUseSavedBankDetails(false);
         }
       } catch (error) {
         console.error("Error fetching bank details:", error);
+      } finally {
+        setLoadingBankDetails(false);
       }
     };
 
     fetchBankDetails();
     return () => setShowHeaderFooter(true);
   }, [setShowHeaderFooter]);
+
+  useEffect(() => {
+    if (useSavedBankDetails) {
+      setIfscLookupLoading(false);
+      setIfscLookupMessage("");
+      return;
+    }
+
+    const ifsc = bankDetails.ifscCode.trim().toUpperCase();
+    if (ifsc.length < 11) {
+      setIfscLookupLoading(false);
+      setIfscLookupMessage("");
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const timer = setTimeout(async () => {
+      setIfscLookupLoading(true);
+      setIfscLookupMessage("");
+      try {
+        const response = await fetch(`https://ifsc.razorpay.com/${ifsc}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error("Invalid IFSC code");
+        }
+
+        const data = await response.json();
+        setBankDetails((prev) => ({
+          ...prev,
+          bankName: data?.BANK || prev.bankName,
+          city: data?.CITY || prev.city,
+          province: data?.STATE || prev.province,
+        }));
+        setIfscLookupMessage("Bank details auto-filled from IFSC.");
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setIfscLookupMessage("Could not fetch bank details from IFSC.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIfscLookupLoading(false);
+        }
+      }
+    }, 500);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [bankDetails.ifscCode, useSavedBankDetails]);
 
   const handleWithdraw = async () => {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
@@ -61,12 +147,11 @@ const Page = () => {
       toast.error("Please enter your password.");
       return;
     }
-    if (!bankDetails.accountNumber || !bankDetails.ifscCode) {
+
+    const activeBankDetails = useSavedBankDetails ? savedBankDetails : bankDetails;
+
+    if (!activeBankDetails?.accountName || !activeBankDetails?.accountNumber || !activeBankDetails?.ifscCode) {
       toast.error("Please enter complete bank details.");
-      return;
-    }
-    if (!bankDetails.accountName) {
-      toast.error("Please enter account holder name.");
       return;
     }
 
@@ -80,7 +165,7 @@ const Page = () => {
         return;
       }
 
-      const response = await fetch("https://ctbackend.crobstacle.com/api/wallet/withdraw/initiate", {
+      const response = await fetch(`${API_BASE_URL}/api/wallet/withdraw/initiate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -88,14 +173,9 @@ const Page = () => {
         },
         body: JSON.stringify({
           amount: Number(amount),
-          bankDetails: {
-            accountName: bankDetails.accountName,
-            accountNumber: bankDetails.accountNumber,
-            ifscCode: bankDetails.ifscCode,
-            bankName: bankDetails.bankName || "Bank",
-            city: bankDetails.city,
-            province: bankDetails.province,
-          },
+          useSavedBankDetails,
+          saveBankDetails: !useSavedBankDetails && saveBankDetailsForFuture,
+          bankDetails: activeBankDetails,
         }),
       });
 
@@ -116,6 +196,10 @@ const Page = () => {
         }
         setAmount("");
         setPassword("");
+        if (!useSavedBankDetails && saveBankDetailsForFuture) {
+          setSavedBankDetails(activeBankDetails);
+          setUseSavedBankDetails(true);
+        }
         refreshBalance();
       } else {
         toast.error(`Withdrawal failed: ${result.message || result.msg || "Try again later"}`);
@@ -179,14 +263,46 @@ const Page = () => {
             Bank Details
           </h2>
 
-          {[
+          {loadingBankDetails ? (
+            <p className="text-xs text-gray-200">Loading bank details...</p>
+          ) : (
+            <>
+              {savedBankDetails && (
+                <div className="mb-4 rounded-lg border border-white/20 bg-black/20 p-3">
+                  <p className="text-xs text-gray-300 mb-1">Saved Account</p>
+                  <p className="text-sm text-white font-semibold">{savedBankDetails.accountName}</p>
+                  <p className="text-xs text-gray-200 mt-1">
+                    A/C ending {savedBankDetails.accountNumber.slice(-4)} | IFSC {savedBankDetails.ifscCode}
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      className={`px-3 py-1.5 rounded-md text-xs font-semibold ${useSavedBankDetails ? "bg-green-600 text-white" : "bg-white/10 text-gray-200"}`}
+                      onClick={() => setUseSavedBankDetails(true)}
+                    >
+                      Use This Account
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-3 py-1.5 rounded-md text-xs font-semibold ${!useSavedBankDetails ? "bg-amber-500 text-black" : "bg-white/10 text-gray-200"}`}
+                      onClick={() => setUseSavedBankDetails(false)}
+                    >
+                      Change Account
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!useSavedBankDetails && (
+                <>
+                  {[
             { label: "Account Holder Name", placeholder: "Enter account holder name", key: "accountName", type: "text" },
             { label: "Account Number", placeholder: "Enter account number", key: "accountNumber", type: "text" },
             { label: "IFSC Code", placeholder: "Enter IFSC code (11 characters)", key: "ifscCode", type: "text", maxLength: 11, uppercase: true },
             { label: "Bank Name", placeholder: "Enter bank name", key: "bankName", type: "text" },
             { label: "City", placeholder: "Enter city", key: "city", type: "text" },
             { label: "Province / State", placeholder: "Enter province or state", key: "province", type: "text" },
-          ].map(({ label, placeholder, key, type, maxLength, uppercase }) => (
+                  ].map(({ label, placeholder, key, type, maxLength, uppercase }) => (
             <div className="mb-3" key={key}>
               <label className="text-xs text-gray-100 mb-1 block">{label}</label>
               <input
@@ -202,8 +318,30 @@ const Page = () => {
                   })
                 }
               />
+              {key === "ifscCode" && (
+                <p className="text-[11px] mt-1 text-gray-300">
+                  {ifscLookupLoading ? "Fetching bank details from IFSC..." : ifscLookupMessage}
+                </p>
+              )}
             </div>
-          ))}
+                  ))}
+
+                  <label className="flex items-center gap-2 text-xs text-gray-200 mt-1">
+                    <input
+                      type="checkbox"
+                      checked={saveBankDetailsForFuture}
+                      onChange={(e) => setSaveBankDetailsForFuture(e.target.checked)}
+                    />
+                    Save this account for future withdrawals
+                  </label>
+                </>
+              )}
+
+              {!savedBankDetails && (
+                <p className="text-xs text-yellow-300">No saved bank details found. Add bank details to continue.</p>
+              )}
+            </>
+          )}
         </div>
 
         {/* Withdrawal Form */}

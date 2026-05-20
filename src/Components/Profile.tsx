@@ -149,8 +149,35 @@ export default function Profile() {
       {/* Section 3 - Security Information */}
       <div className="px-3 sm:px-5 my-7">
         <h1 className="text-base text-white sm:text-lg font-bold border-l-4 pl-3 border-r">
-          Security Information
+          Profile Information
         </h1>
+
+        {/* Bank Details */}
+        <Link
+          href="/bankdetails"
+          className="bg-[#333332] flex justify-between rounded-2xl my-4 sm:my-5 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center p-3 gap-2 sm:gap-3">
+            <Image
+              className="w-6 h-6 sm:w-7 sm:h-7"
+              src="/bankcard.png"
+              width={100}
+              height={100}
+              alt="Bank Details"
+            />
+            <h1 className="font-semibold text-white text-base sm:text-lg">Bank Details</h1>
+          </div>
+          <div className="flex items-center p-3 gap-2 sm:gap-3">
+            <h1 className="text-sm sm:text-lg text-gray-300">Edit</h1>
+            <Image
+              className="w-5 h-5 sm:w-7 sm:h-7"
+              src="/next.png"
+              width={100}
+              height={100}
+              alt="Next"
+            />
+          </div>
+        </Link>
         
         {/* Login Password */}
         <Link
