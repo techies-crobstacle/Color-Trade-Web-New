@@ -34,6 +34,14 @@ interface AffiliateSettings {
   level1SignupBonus: number;
   level2SignupBonus: number;
   level3SignupBonus: number;
+  gameWinningFeeType: "fixed" | "percent";
+  gameWinningFeeValue: number;
+  withdrawalFeeType: "fixed" | "percent";
+  withdrawalFeeValue: number;
+  depositGatewayFeeType: "fixed" | "percent";
+  depositGatewayFeeValue: number;
+  withdrawalGatewayFeeType: "fixed" | "percent";
+  withdrawalGatewayFeeValue: number;
   updatedAt: string;
   createdAt: string;
   updatedBy?: string;
@@ -76,6 +84,10 @@ const normalizeSettingsPayload = (raw: any): AffiliateSettings | null => {
     level1SignupBonus,
     level2SignupBonus,
     level3SignupBonus,
+    Number(raw.gameWinningFeeValue ?? 0),
+    Number(raw.withdrawalFeeValue ?? 0),
+    Number(raw.depositGatewayFeeValue ?? 0),
+    Number(raw.withdrawalGatewayFeeValue ?? 0),
   ];
 
   if (numbers.some((n) => Number.isNaN(n))) return null;
@@ -88,6 +100,14 @@ const normalizeSettingsPayload = (raw: any): AffiliateSettings | null => {
     level1SignupBonus,
     level2SignupBonus,
     level3SignupBonus,
+    gameWinningFeeType: raw.gameWinningFeeType === "fixed" ? "fixed" : "percent",
+    gameWinningFeeValue: Number(raw.gameWinningFeeValue ?? 0),
+    withdrawalFeeType: raw.withdrawalFeeType === "fixed" ? "fixed" : "percent",
+    withdrawalFeeValue: Number(raw.withdrawalFeeValue ?? 0),
+    depositGatewayFeeType: raw.depositGatewayFeeType === "fixed" ? "fixed" : "percent",
+    depositGatewayFeeValue: Number(raw.depositGatewayFeeValue ?? 0),
+    withdrawalGatewayFeeType: raw.withdrawalGatewayFeeType === "fixed" ? "fixed" : "percent",
+    withdrawalGatewayFeeValue: Number(raw.withdrawalGatewayFeeValue ?? 0),
     updatedAt: raw.updatedAt || new Date().toISOString(),
     createdAt: raw.createdAt || new Date().toISOString(),
     updatedBy: raw.updatedBy,
@@ -190,6 +210,14 @@ const Setting = () => {
           level1SignupBonus: settings.level1SignupBonus,
           level2SignupBonus: settings.level2SignupBonus,
           level3SignupBonus: settings.level3SignupBonus,
+          gameWinningFeeType: settings.gameWinningFeeType,
+          gameWinningFeeValue: settings.gameWinningFeeValue,
+          withdrawalFeeType: settings.withdrawalFeeType,
+          withdrawalFeeValue: settings.withdrawalFeeValue,
+          depositGatewayFeeType: settings.depositGatewayFeeType,
+          depositGatewayFeeValue: settings.depositGatewayFeeValue,
+          withdrawalGatewayFeeType: settings.withdrawalGatewayFeeType,
+          withdrawalGatewayFeeValue: settings.withdrawalGatewayFeeValue,
         }),
       });
 
@@ -508,6 +536,198 @@ const Setting = () => {
                     })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 border-t border-gray-200 pt-6">
+              <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
+                Platform Fees
+              </h4>
+              <p className="text-sm text-gray-500 mb-5">
+                These admin charges apply to net game payouts and withdrawal requests.
+                Choose a fixed rupee amount or percentage.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <h5 className="font-medium text-gray-800 mb-4">Game Winning Fee</h5>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Type
+                      </label>
+                      <select
+                        value={settings.gameWinningFeeType}
+                        onChange={(e) => setSettings({
+                          ...settings,
+                          gameWinningFeeType: e.target.value as "fixed" | "percent"
+                        })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="percent">Percent (%)</option>
+                        <option value="fixed">Fixed (₹)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Value {settings.gameWinningFeeType === "percent" ? "(%)" : "(₹)"}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={settings.gameWinningFeeType === "percent" ? 100 : undefined}
+                        step={settings.gameWinningFeeType === "percent" ? "0.1" : "1"}
+                        value={settings.gameWinningFeeValue}
+                        onChange={(e) => setSettings({
+                          ...settings,
+                          gameWinningFeeValue: parseFloat(e.target.value) || 0
+                        })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Example: if user wins ₹100 and fee is 4%, ₹4 is charged and ₹96 is credited.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <h5 className="font-medium text-gray-800 mb-4">Withdrawal Fee</h5>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Type
+                      </label>
+                      <select
+                        value={settings.withdrawalFeeType}
+                        onChange={(e) => setSettings({
+                          ...settings,
+                          withdrawalFeeType: e.target.value as "fixed" | "percent"
+                        })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="percent">Percent (%)</option>
+                        <option value="fixed">Fixed (₹)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Value {settings.withdrawalFeeType === "percent" ? "(%)" : "(₹)"}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={settings.withdrawalFeeType === "percent" ? 100 : undefined}
+                        step={settings.withdrawalFeeType === "percent" ? "0.1" : "1"}
+                        value={settings.withdrawalFeeValue}
+                        onChange={(e) => setSettings({
+                          ...settings,
+                          withdrawalFeeValue: parseFloat(e.target.value) || 0
+                        })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Example: if user withdraws ₹500 and fee is ₹4, wallet debit is ₹504.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 border-t border-gray-200 pt-6">
+              <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
+                Payment Gateway Costs
+              </h4>
+              <p className="text-sm text-gray-500 mb-5">
+                These are costs charged to admin by the payment gateway. They do not reduce
+                the wallet amount shown to users, but they appear in admin money-flow reports.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <h5 className="font-medium text-gray-800 mb-4">Deposit Gateway Cost</h5>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Type
+                      </label>
+                      <select
+                        value={settings.depositGatewayFeeType}
+                        onChange={(e) => setSettings({
+                          ...settings,
+                          depositGatewayFeeType: e.target.value as "fixed" | "percent"
+                        })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="percent">Percent (%)</option>
+                        <option value="fixed">Fixed (₹)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Value {settings.depositGatewayFeeType === "percent" ? "(%)" : "(₹)"}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={settings.depositGatewayFeeType === "percent" ? 100 : undefined}
+                        step={settings.depositGatewayFeeType === "percent" ? "0.1" : "1"}
+                        value={settings.depositGatewayFeeValue}
+                        onChange={(e) => setSettings({
+                          ...settings,
+                          depositGatewayFeeValue: parseFloat(e.target.value) || 0
+                        })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Example: user deposits ₹500, wallet shows ₹500, gateway cost 2% means admin net received is ₹490.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <h5 className="font-medium text-gray-800 mb-4">Withdrawal Gateway Cost</h5>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Type
+                      </label>
+                      <select
+                        value={settings.withdrawalGatewayFeeType}
+                        onChange={(e) => setSettings({
+                          ...settings,
+                          withdrawalGatewayFeeType: e.target.value as "fixed" | "percent"
+                        })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="percent">Percent (%)</option>
+                        <option value="fixed">Fixed (₹)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Value {settings.withdrawalGatewayFeeType === "percent" ? "(%)" : "(₹)"}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={settings.withdrawalGatewayFeeType === "percent" ? 100 : undefined}
+                        step={settings.withdrawalGatewayFeeType === "percent" ? "0.1" : "1"}
+                        value={settings.withdrawalGatewayFeeValue}
+                        onChange={(e) => setSettings({
+                          ...settings,
+                          withdrawalGatewayFeeValue: parseFloat(e.target.value) || 0
+                        })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Example: user withdraws ₹500, gateway cost ₹4 means admin cash out is tracked as ₹504.
+                  </p>
                 </div>
               </div>
             </div>

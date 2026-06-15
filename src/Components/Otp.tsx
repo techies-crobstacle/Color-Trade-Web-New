@@ -73,8 +73,8 @@ const Otp = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        "https://ctbackend.crobstacle.com/api/auth/verifyotp",
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+      const response = await fetch(`${API_BASE}/api/auth/verifyotp`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -135,8 +135,8 @@ const Otp = () => {
 
     setResendLoading(true);
     try {
-      const response = await fetch(
-        "https://ctbackend.crobstacle.com/api/auth/resend-otp",
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+      const response = await fetch(`${API_BASE}/api/auth/resend-otp`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

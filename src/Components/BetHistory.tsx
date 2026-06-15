@@ -30,7 +30,8 @@ export default function BetHistory() {
         return;
       }
       try {
-        const response = await fetch("https://ctbackend.crobstacle.com/api/wallet/transactions", {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+        const response = await fetch(`${API_BASE}/api/wallet/transactions`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

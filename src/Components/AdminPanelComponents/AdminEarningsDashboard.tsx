@@ -35,6 +35,23 @@ type EarningsPagination = {
   totalPages: number;
 };
 
+type MoneyFlowSummary = {
+  depositCount: number;
+  withdrawalCount: number;
+  totalUserDeposits: number;
+  totalDepositGatewayFees: number;
+  actualDepositReceived: number;
+  totalWithdrawalRequested: number;
+  totalWithdrawalFeesChargedToUsers: number;
+  totalWithdrawalGatewayFees: number;
+  totalWalletDebitedForWithdrawals: number;
+  actualWithdrawalOutflow: number;
+  pendingWithdrawalAmount: number;
+  totalGatewayFees: number;
+  estimatedGatewayBalance: number;
+  adminNetMoneyFeePosition: number;
+};
+
 type FiscalYearRange = {
   id: string;
   label: string;
@@ -103,6 +120,22 @@ export default function AdminEarningsDashboard() {
     limit: 20,
     totalPlayers: 0,
     totalPages: 0,
+  });
+  const [moneyFlow, setMoneyFlow] = useState<MoneyFlowSummary>({
+    depositCount: 0,
+    withdrawalCount: 0,
+    totalUserDeposits: 0,
+    totalDepositGatewayFees: 0,
+    actualDepositReceived: 0,
+    totalWithdrawalRequested: 0,
+    totalWithdrawalFeesChargedToUsers: 0,
+    totalWithdrawalGatewayFees: 0,
+    totalWalletDebitedForWithdrawals: 0,
+    actualWithdrawalOutflow: 0,
+    pendingWithdrawalAmount: 0,
+    totalGatewayFees: 0,
+    estimatedGatewayBalance: 0,
+    adminNetMoneyFeePosition: 0,
   });
   const [loading, setLoading] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -232,6 +265,51 @@ export default function AdminEarningsDashboard() {
     selectedUserId,
   ]);
 
+  useEffect(() => {
+    const fetchMoneyFlow = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams();
+
+        if (effectiveRange.start) params.append('startDate', effectiveRange.start);
+        if (effectiveRange.end) params.append('endDate', effectiveRange.end);
+        if (selectedUserId !== 'all') params.append('userId', selectedUserId);
+
+        const res = await fetch(`${API_BASE_URL}/api/admin/money-flow?${params.toString()}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const json = await res.json();
+        if (json?.status === 'success' && json?.data?.summary) {
+          const s = json.data.summary;
+          setMoneyFlow({
+            depositCount: Number(s.depositCount || 0),
+            withdrawalCount: Number(s.withdrawalCount || 0),
+            totalUserDeposits: Number(s.totalUserDeposits || 0),
+            totalDepositGatewayFees: Number(s.totalDepositGatewayFees || 0),
+            actualDepositReceived: Number(s.actualDepositReceived || 0),
+            totalWithdrawalRequested: Number(s.totalWithdrawalRequested || 0),
+            totalWithdrawalFeesChargedToUsers: Number(s.totalWithdrawalFeesChargedToUsers || 0),
+            totalWithdrawalGatewayFees: Number(s.totalWithdrawalGatewayFees || 0),
+            totalWalletDebitedForWithdrawals: Number(s.totalWalletDebitedForWithdrawals || 0),
+            actualWithdrawalOutflow: Number(s.actualWithdrawalOutflow || 0),
+            pendingWithdrawalAmount: Number(s.pendingWithdrawalAmount || 0),
+            totalGatewayFees: Number(s.totalGatewayFees || 0),
+            estimatedGatewayBalance: Number(s.estimatedGatewayBalance || 0),
+            adminNetMoneyFeePosition: Number(s.adminNetMoneyFeePosition || 0),
+          });
+        }
+      } catch (e) {
+        console.error('Failed to fetch money flow dashboard', e);
+      }
+    };
+
+    fetchMoneyFlow();
+  }, [effectiveRange.end, effectiveRange.start, selectedUserId]);
+
   return (
     <div className="flex flex-col gap-6 font-sans">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-gray-200 pb-4">
@@ -305,6 +383,89 @@ export default function AdminEarningsDashboard() {
               </option>
             ))}
           </select>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Money Flow Dashboard</h2>
+            <p className="text-sm text-gray-500">
+              User wallet money versus actual payment-gateway money after gateway costs.
+            </p>
+          </div>
+          <div className="text-xs text-gray-500">
+            Deposits: {moneyFlow.depositCount} • Withdrawals: {moneyFlow.withdrawalCount}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+            <p className="text-xs font-bold uppercase text-green-700">User Deposits Shown</p>
+            <p className="mt-2 text-2xl font-black text-green-900">{formatMoney(moneyFlow.totalUserDeposits)}</p>
+            <p className="mt-1 text-xs text-green-700">Wallet credited to users</p>
+          </div>
+
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="text-xs font-bold uppercase text-amber-700">PG Deposit Cost</p>
+            <p className="mt-2 text-2xl font-black text-amber-900">{formatMoney(moneyFlow.totalDepositGatewayFees)}</p>
+            <p className="mt-1 text-xs text-amber-700">Admin cost on deposits</p>
+          </div>
+
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <p className="text-xs font-bold uppercase text-emerald-700">Actual Deposit Received</p>
+            <p className="mt-2 text-2xl font-black text-emerald-900">{formatMoney(moneyFlow.actualDepositReceived)}</p>
+            <p className="mt-1 text-xs text-emerald-700">Deposits minus gateway cost</p>
+          </div>
+
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+            <p className="text-xs font-bold uppercase text-red-700">Withdrawal Payouts</p>
+            <p className="mt-2 text-2xl font-black text-red-900">{formatMoney(moneyFlow.totalWithdrawalRequested)}</p>
+            <p className="mt-1 text-xs text-red-700">Amount sent to users</p>
+          </div>
+
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <p className="text-xs font-bold uppercase text-blue-700">User Withdrawal Fees</p>
+            <p className="mt-2 text-2xl font-black text-blue-900">{formatMoney(moneyFlow.totalWithdrawalFeesChargedToUsers)}</p>
+            <p className="mt-1 text-xs text-blue-700">Fees charged from users</p>
+          </div>
+
+          <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
+            <p className="text-xs font-bold uppercase text-orange-700">PG Withdrawal Cost</p>
+            <p className="mt-2 text-2xl font-black text-orange-900">{formatMoney(moneyFlow.totalWithdrawalGatewayFees)}</p>
+            <p className="mt-1 text-xs text-orange-700">Admin cost on payouts</p>
+          </div>
+
+          <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+            <p className="text-xs font-bold uppercase text-purple-700">Actual Money Out</p>
+            <p className="mt-2 text-2xl font-black text-purple-900">{formatMoney(moneyFlow.actualWithdrawalOutflow)}</p>
+            <p className="mt-1 text-xs text-purple-700">Payouts plus gateway cost</p>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-bold uppercase text-slate-700">Estimated PG Balance</p>
+            <p className={`mt-2 text-2xl font-black ${moneyFlow.estimatedGatewayBalance >= 0 ? 'text-slate-900' : 'text-red-700'}`}>
+              {formatMoney(moneyFlow.estimatedGatewayBalance)}
+            </p>
+            <p className="mt-1 text-xs text-slate-700">Deposit net minus actual money out</p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+          <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+            <span className="text-gray-500">Wallet Debited for Withdrawals:</span>{' '}
+            <span className="font-bold text-gray-900">{formatMoney(moneyFlow.totalWalletDebitedForWithdrawals)}</span>
+          </div>
+          <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+            <span className="text-gray-500">Pending Withdrawal Amount:</span>{' '}
+            <span className="font-bold text-gray-900">{formatMoney(moneyFlow.pendingWithdrawalAmount)}</span>
+          </div>
+          <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+            <span className="text-gray-500">Net Fee Position:</span>{' '}
+            <span className={`font-bold ${moneyFlow.adminNetMoneyFeePosition >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+              {formatMoney(moneyFlow.adminNetMoneyFeePosition)}
+            </span>
+          </div>
         </div>
       </div>
 

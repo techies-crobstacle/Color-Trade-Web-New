@@ -27,14 +27,12 @@ const ReferralPage = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await fetch(
-        'https://ctbackend.crobstacle.com/api/affiliate/my-referrals',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com';
+      const res = await fetch(`${API_BASE}/api/affiliate/my-referrals`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
       if (res.ok) {
         setReferralData(data);

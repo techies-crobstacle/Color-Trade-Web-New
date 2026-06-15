@@ -45,7 +45,7 @@ export async function apiFetch<T = unknown>(
   endpoint: string,
   options?: RequestInit & { headers?: HeadersInit }
 ): Promise<T> {
-  const baseUrl = "https://ctbackend.crobstacle.com";
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
   const url = endpoint.startsWith("http")
     ? endpoint
     : `${baseUrl}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;

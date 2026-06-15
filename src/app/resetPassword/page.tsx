@@ -152,7 +152,8 @@ const ContinueScreen = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("https://ctbackend.crobstacle.com/api/auth/forget-password", {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+      const response = await fetch(`${API_BASE}/api/auth/forget-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -35,7 +35,8 @@ export default function HomePopup({ onClose }: HomePopupProps) {
         setLoading(true);
         const token = localStorage.getItem('token');
         
-        const response = await fetch(`https://ctbackend.crobstacle.com/api/announcements?isActive=true`, {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+        const response = await fetch(`${API_BASE}/api/announcements?isActive=true`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

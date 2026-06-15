@@ -37,7 +37,8 @@ export default function AccountPage() {
           return;
         }
 
-        const res = await fetch("https://ctbackend.crobstacle.com/api/users/profile", {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+        const res = await fetch(`${API_BASE}/api/users/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -80,201 +81,134 @@ export default function AccountPage() {
     }
   };
 
+  const formattedBalance = Number(balance || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const walletShortcuts = [
+    { label: "Wallet", path: "/wallet", icon: "/wallet.png", sub: "Overview" },
+    { label: "Deposit", path: "/addMoney", icon: "/deposit.png", sub: "Add funds" },
+    { label: "Withdraw", path: "/withMoney", icon: "/withdrawal.png", sub: "Bank payout" },
+  ];
+
+  const historyItems = [
+    { label: "Bet History", sub: "View all game bets", icon: "/trnx.png", path: "/bethistory" },
+    { label: "Transactions", sub: "All wallet activity", icon: "/trnsc.png", path: "/transactionhistory" },
+    { label: "Deposits", sub: "Recharge history", icon: "/4-deposite.png", path: "/deposithistory" },
+    { label: "Withdrawals", sub: "Payout history", icon: "/withd.png", path: "/withdrawalhistory" },
+  ];
+
+  const menuItems = [
+    { label: "My Profile", path: "/profile", icon: "/promote.png" },
+    { label: "Settings", path: "/changepassword", icon: "/setting.png" },
+    { label: "About Us", path: "/about", icon: "/about.png" },
+    { label: "Support", path: "/support", icon: "/ticket.png" },
+    { label: "My Referral", path: "/referral", icon: "/mreferral.png" },
+    { label: "App Download", path: "https://diuvin.com/app.apk", icon: "/app.png" },
+    { label: "Join Telegram Channel", path: "/profile", icon: "/app.png" },
+  ];
+
   return (
-    <div className="flex-1 bg-[#242424]">
-      {/* Section 1 - Profile Header */}
-      <div className="bg-[linear-gradient(90deg,#FAE59F_0%,#C4933F_100%)] rounded-b-[3rem] px-5 pt-6 pb-28">
-        <div className="flex gap-3 items-center justify-center">
-          <Image
-            src="/avatar2.png"
-            width={100}
-            height={100}
-            alt="Avatar"
-            className="rounded-full w-20 h-20 flex-shrink-0"
-          />
-          <div className="text-white flex flex-col font-semibold items-start gap-1 min-w-0">
-            <h1 className="uppercase text-xl truncate max-w-[200px]">
+    <div className="min-h-screen bg-[#151515] pb-20 text-white">
+      <div className="overflow-hidden rounded-b-[2.5rem] border-b border-[#d4a64a]/20 bg-gradient-to-br from-[#3a2c13] via-[#25211a] to-[#111] px-4 pb-24 pt-6 shadow-2xl">
+        <div className="flex items-center gap-4">
+          <div className="rounded-full border-2 border-[#f6d371]/40 bg-white/10 p-1">
+            <Image
+              src="/avatar2.png"
+              width={96}
+              height={96}
+              alt="Avatar"
+              className="h-20 w-20 rounded-full object-cover"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#f6d371]">My Account</p>
+            <h1 className="mt-1 truncate text-2xl font-black uppercase">
               {profile?.name || "Loading..."}
             </h1>
-            <h1 className="bg-orange-200 rounded-full px-2 text-xs text-red-500 truncate max-w-[200px]">
-              UID | {profile?.uid || "Loading..."}
-            </h1>
-            <h1 className="text-sm whitespace-nowrap">
-              Mobile : {profile?.number || "Loading..."}
-            </h1>
+            <p className="mt-1 truncate text-sm text-gray-300">Mobile: {profile?.number || "Loading..."}</p>
+            <p className="mt-2 inline-flex max-w-full rounded-full bg-black/25 px-3 py-1 text-[11px] font-bold text-[#f6d371]">
+              <span className="truncate">UID | {profile?.uid || "Loading..."}</span>
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Section 2 - Balance Card */}
-      <div className="px-4">
-        <div className="bg-[#4b4b4a] text-white rounded-xl shadow-lg p-5 -mt-16 text-center">
-          <p className="font-semibold text-base">Total Balance</p>
-          <p className="my-2 text-xl font-bold">
+      <main className="-mt-16 px-4">
+        <section className="rounded-3xl border border-white/10 bg-white/[0.07] p-5 shadow-2xl backdrop-blur">
+          <p className="text-sm text-gray-300">Total Balance</p>
+          <h2 className="mt-2 text-4xl font-black">
             {loading
               ? "Loading..."
               : balance == null
               ? "Login to view Balance"
-              : `₹ ${balance.toFixed(2)}`}
-          </p>
-          <div className="flex items-center mt-5 font-semibold">
-            <button
-              onClick={() => handleNav("/wallet")}
-              className="flex basis-1/3 flex-col items-center"
-            >
-              <Image
-                src="/wallet.png"
-                width={40}
-                height={40}
-                alt="Wallet"
-                className="w-10 h-10"
-              />
-              <span className="text-sm mt-1">Wallet</span>
-            </button>
-            <button
-              onClick={() => handleNav("/addMoney")}
-              className="flex basis-1/3 flex-col items-center"
-            >
-              <Image
-                src="/deposit.png"
-                width={40}
-                height={40}
-                alt="Deposit"
-                className="w-10 h-10"
-              />
-              <span className="text-sm mt-1">Deposit</span>
-            </button>
-            <button
-              onClick={() => handleNav("/withMoney")}
-              className="flex basis-1/3 flex-col items-center"
-            >
-              <Image
-                src="/withdrawal.png"
-                width={40}
-                height={40}
-                alt="Withdrawal"
-                className="w-10 h-10"
-              />
-              <span className="text-sm mt-1">Withdrawal</span>
-            </button>
-          </div>
-        </div>
-      </div>
+              : `₹${formattedBalance}`}
+          </h2>
 
-      {/* Section 3 - History Grid */}
-      <div className="bg-[#242424]">
-        <div className="grid grid-cols-2 mt-5 gap-3 px-4">
-          {[
-            { label: "Bet", sub: "My Bet History", icon: "/trnx.png", path: "/bethistory" },
-            { label: "Transaction", sub: "My Transaction History", icon: "/trnsc.png", path: "/transactionhistory" },
-            { label: "Deposit", sub: "My Deposit History", icon: "/4-deposite.png", path: "/deposithistory" },
-            { label: "Withdraw", sub: "My Withdraw History", icon: "/withd.png", path: "/withdrawalhistory" },
-          ].map(({ label, sub, icon, path }) => (
-            <button
-              key={path}
-              onClick={() => handleNav(path)}
-              className="flex bg-[#333332] text-white p-3 items-center rounded-lg gap-2 w-full overflow-hidden"
-            >
-              <Image
-                src={icon}
-                width={36}
-                height={36}
-                alt={label}
-                className="w-9 h-9 flex-shrink-0"
-              />
-              <div className="text-left overflow-hidden">
-                <p className="text-base font-medium whitespace-nowrap">{label}</p>
-                <p className="text-[10px] text-gray-200 truncate">{sub}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Section 4 - Menu Options */}
-        <div className="my-5 px-4">
-          <div className="rounded-lg bg-[#333332] text-white p-3 space-y-1">
-            {[
-              { label: "My Profile", path: "/profile", icon: "/promote.png" },
-              { label: "Settings", path: "/changepassword", icon: "/setting.png" },
-              { label: "About Us", path: "/about", icon: "/about.png" },
-              { label: "Support", path: "/support", icon: "/ticket.png" },
-              { label: "My-referral", path: "/referral", icon: "/mreferral.png" },
-              
-            ].map(({ label, path, icon }) => (
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            {walletShortcuts.map(({ label, path, icon, sub }) => (
               <button
                 key={path}
                 onClick={() => handleNav(path)}
-                className="flex justify-between items-center px-2 py-3 w-full"
+                className="rounded-2xl border border-white/10 bg-black/20 p-3 text-center transition hover:border-[#c4933f]"
               >
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={icon}
-                    width={40}
-                    height={40}
-                    alt={label}
-                    className="w-10 h-10 flex-shrink-0"
-                  />
-                  <span className="font-semibold text-base whitespace-nowrap">{label}</span>
-                </div>
-                <Image
-                  src="/right-next.svg"
-                  width={28}
-                  height={28}
-                  alt="Next"
-                  className="w-7 h-7 flex-shrink-0"
-                />
+                <Image src={icon} width={34} height={34} alt={label} className="mx-auto h-8 w-8" />
+                <span className="mt-2 block text-sm font-bold">{label}</span>
+                <span className="mt-0.5 block text-[10px] text-gray-500">{sub}</span>
               </button>
             ))}
-            <button
-              onClick={() => handleNav("https://diuvin.com/app.apk")}
-              className="flex justify-between items-center px-2 py-3 w-full"
-            >
-              <div className="flex items-center gap-3">
-                <Image
-                  src="/app.png"
-                  width={40}
-                  height={40}
-                  alt="App Download"
-                  className="w-10 h-10 flex-shrink-0"
-                />
-                <span className="font-semibold text-base whitespace-nowrap">App Download</span>
-              </div>
-              <Image
-                src="/right-next.svg"
-                width={28}
-                height={28}
-                alt="Next"
-                className="w-7 h-7 flex-shrink-0"
-              />
-            </button>
-            <button
-              onClick={() => handleNav("/profile")}
-              className="flex justify-between items-center px-2 py-3 w-full"
-            >
-              <div className="flex items-center gap-3">
-                <Image
-                  src="/app.png"
-                  width={40}
-                  height={40}
-                  alt="Telegram"
-                  className="w-10 h-10 flex-shrink-0"
-                />
-                <span className="font-semibold text-base whitespace-nowrap">Join Telegram Channel!</span>
-              </div>
-              <Image
-                src="/right-next.svg"
-                width={28}
-                height={28}
-                alt="Next"
-                className="w-7 h-7 flex-shrink-0"
-              />
-            </button>
           </div>
-        </div>
-      </div>
+        </section>
+
+        <section className="mt-5">
+          <div className="mb-3">
+            <h2 className="text-lg font-bold">History</h2>
+            <p className="text-xs text-gray-400">Review game and wallet records</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {historyItems.map(({ label, sub, icon, path }) => (
+              <button
+                key={path}
+                onClick={() => handleNav(path)}
+                className="rounded-3xl border border-white/10 bg-white/[0.07] p-4 text-left shadow-lg transition hover:border-[#c4933f]"
+              >
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
+                  <Image src={icon} width={32} height={32} alt={label} />
+                </div>
+                <p className="font-black">{label}</p>
+                <p className="mt-1 text-xs text-gray-400">{sub}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-3xl border border-white/10 bg-white/[0.07] p-2 shadow-lg">
+          {menuItems.map(({ label, path, icon }) => (
+            <button
+              key={`${label}-${path}`}
+              onClick={() => handleNav(path)}
+              className="flex w-full items-center justify-between rounded-2xl px-3 py-3 transition hover:bg-white/5"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-black/20">
+                  <Image src={icon} width={28} height={28} alt={label} />
+                </span>
+                <span className="truncate font-bold">{label}</span>
+              </div>
+              <Image
+                src="/right-next.svg"
+                width={24}
+                height={24}
+                alt="Next"
+                className="h-6 w-6 flex-shrink-0 opacity-70"
+              />
+            </button>
+          ))}
+        </section>
 
       {/* Log Out */}
-      <div className="flex justify-center px-4">
+      <div className="mt-5 flex justify-center">
         <button
           onClick={() => {
             localStorage.removeItem("token");
@@ -283,11 +217,12 @@ export default function AccountPage() {
             router.push("/");
             toast.success("You are Logged out");
           }}
-          className="mb-24 rounded-full py-2.5 w-full font-semibold border-2 border-[#e1b252] text-[#e1b252] text-base"
+          className="w-full rounded-2xl border border-red-400/30 bg-red-500/10 py-3 font-black text-red-300 transition hover:bg-red-500/20"
         >
           Log Out
         </button>
       </div>
+      </main>
 
       <Footer />
     </div>

@@ -136,87 +136,32 @@
 
 
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
-import { saveOrder } from '@/lib/orderStore';
 
-const API_KEY = process.env.PAYMENT_API_KEY || '';
-const PAYMENT_GATEWAY_URL = 'https://inrpay.info/Pay_Index.html';
-const MERCHANT_ID = process.env.PAYMENT_MERCHANT_ID || '';
-
-interface PaymentData {
-  pay_memberid: string;
-  pay_orderid: string;
-  pay_applydate: string;
-  pay_bankcode: string;
-  pay_notifyurl: string;
-  pay_callbackurl: string;
-  pay_amount: string;
-}
-
-function generateMd5Sign(params: PaymentData): string {
-  const sortedKeys = Object.keys(params).sort();
-  
-  console.log('\n=== MD5 Signature Generation ===');
-  console.log('Parameters for signature:', params);
-  
-  const paramsArray = sortedKeys.map(key => {
-    const value = params[key as keyof PaymentData];
-    console.log(`  ${key} = ${value}`);
-    return `${key}=${value}`;
-  });
-  
-  const signString = paramsArray.join('&');
-  console.log('\nString before adding key:', signString);
-  
-  const finalString = `${signString}&key=${API_KEY}`;
-  console.log('Final string with key:', finalString);
-  
-  const md5Hash = crypto.createHash('md5').update(finalString).digest('hex').toUpperCase();
-  console.log('Generated MD5 signature:', md5Hash);
-  console.log('=== End Debug ===\n');
-  
-  return md5Hash;
-}
-
+// Proxy payment initiation to backend so gateway keys remain server-side
 export async function POST(request: Request) {
   try {
-    const { amount, userId } = await request.json();
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
-    
-    console.log('\n========================================');
-    console.log('💳 PAYMENT INITIATION REQUEST');
-    console.log('========================================');
-    console.log('Amount:', amount);
-    console.log('User ID:', userId || 'Not provided');
-    console.log('Has Token:', !!token);
-    
-    // Validation
-    if (!amount || amount <= 0) {
-      return NextResponse.json({ 
-        success: false,
-        error: 'Invalid amount' 
-      }, { status: 400 });
+    const body = await request.json();
+    const token = request.headers.get('authorization') || '';
+
+    if (!body.amount || body.amount <= 0) {
+      return NextResponse.json({ success: false, message: 'Invalid amount' }, { status: 400 });
     }
 
-    if (!token) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Unauthorized - No token provided' 
-      }, { status: 401 });
-    }
+    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com'}/api/wallet/deposit/initiate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify(body)
+    });
 
-    if (!API_KEY || !MERCHANT_ID) {
-      console.error('❌ Missing environment variables');
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Server configuration error' 
-      }, { status: 500 });
-    }
-
-    // Generate order ID
-    const orderId = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const result = await backendRes.json();
+    return NextResponse.json(result, { status: backendRes.status });
+  } catch (err) {
+    console.error('Payment initiation proxy error:', err);
+    return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
+  }
 
     console.log('\nGenerated Order ID:', orderId);
 

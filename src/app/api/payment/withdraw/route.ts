@@ -136,101 +136,31 @@
 
 
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
 
-const API_KEY = process.env.WITHDRAWAL_API_KEY || '';
-const MERCHANT_ID = process.env.WITHDRAWAL_MERCHANT_ID || '';
-const GATEWAY_URL = 'https://inrpay.info/Payment_Dfpay_add.html';
-
-function generateMd5Sign(params: Record<string, string>): string {
-  const signString = Object.keys(params)
-    .filter(key => params[key])
-    .sort()
-    .map(key => `${key}=${params[key]}`)
-    .join('&') + `&key=${API_KEY}`;
-  
-  return crypto.createHash('md5').update(signString).digest('hex').toUpperCase();
-}
-
+// Forward withdrawal requests to the backend to avoid exposing gateway credentials
 export async function POST(request: Request) {
   try {
-    const { amount, accountName, accountNumber, ifscCode, bankName } = await request.json();
-    
-    console.log('Withdrawal request:', { amount, accountName, accountNumber });
-    
-    // Validate inputs
-    if (!amount || amount <= 0) {
+    const body = await request.json();
+    const token = request.headers.get('authorization') || '';
+
+    // Basic validation
+    if (!body.amount || body.amount <= 0) {
       return NextResponse.json({ success: false, message: 'Invalid amount' }, { status: 400 });
     }
-    
-    if (!accountNumber || !ifscCode) {
-      return NextResponse.json({ success: false, message: 'Bank details missing' }, { status: 400 });
-    }
-    
-    // Validate IFSC code format
-    if (ifscCode.length !== 11 || ifscCode[4] !== '0') {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Invalid IFSC code. Must be 11 characters with 5th character as 0' 
-      }, { status: 400 });
-    }
 
-    // Generate unique order ID
-    const out_trade_no = `WD${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.cxdventures.com';
-
-    // Prepare withdrawal parameters
-    const params = {
-      mchid: MERCHANT_ID,
-      out_trade_no,
-      money: Number(amount).toFixed(2),
-      bankname: bankName || 'inrbank',
-      subbranch: `${baseUrl}/api/payment/withdraw-callback`,
-      accountname: accountName,
-      cardnumber: accountNumber,
-      province: ifscCode,
-      city: 'India',
-    };
-
-    const pay_md5sign = generateMd5Sign(params);
-
-    const formDataObject = {
-      ...params,
-      pay_md5sign,
-    };
-
-    console.log('Submitting withdrawal to gateway...');
-
-    const formData = new URLSearchParams(formDataObject);
-
-    const response = await fetch(GATEWAY_URL, {
+    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com'}/api/wallet/withdraw/initiate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData.toString(),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify(body)
     });
 
-    const result = await response.json();
-    console.log('Gateway response:', result);
-
-    if (result.status === 'success') {
-      return NextResponse.json({
-        success: true,
-        message: 'Withdrawal request submitted',
-        transactionId: result.transaction_id,
-        orderId: out_trade_no,
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        message: result.msg || 'Withdrawal failed',
-      }, { status: 400 });
-    }
-
-  } catch (error) {
-    console.error('Withdrawal error:', error);
-    return NextResponse.json({
-      success: false,
-      message: 'Server error',
-    }, { status: 500 });
+    const result = await backendRes.json();
+    return NextResponse.json(result, { status: backendRes.status });
+  } catch (err) {
+    console.error('Withdrawal proxy error:', err);
+    return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
 }

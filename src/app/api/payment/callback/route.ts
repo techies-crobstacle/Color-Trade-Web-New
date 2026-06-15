@@ -312,7 +312,7 @@ export async function POST(req: NextRequest) {
     console.log('Calling backend deposit API...');
 
     try {
-      const depositResponse = await fetch('https://ctbackend.crobstacle.com/api/wallet/deposit', {
+      const depositResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com'}/api/wallet/deposit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

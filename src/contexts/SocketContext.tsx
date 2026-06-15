@@ -85,9 +85,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [currentRounds, setCurrentRounds] = useState<GameData[]>([]);
   const [lastGames, setLastGames] = useState<Record<string, LastGameInfo>>({});
   const [userBetResults, setUserBetResults] = useState<Record<string, UserBetResult>>({});
-  const [token, setToken] = useState<string | null>(
-    typeof window !== "undefined" ? localStorage.getItem("token") : null
-  );
+  // Avoid reading localStorage during initial render to keep server and client HTML stable.
+  // Populate `token` after mount so SSR output matches client initial render.
+  const [token, setToken] = useState<string | null>(null);
 
   const onTokenChange = (newToken: string | null) => setToken(newToken);
 
@@ -98,6 +98,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  // Read token once on mount (client-only) to avoid hydration mismatch with SSR.
+  useEffect(() => {
+    const initial = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (initial) setToken(initial);
   }, []);
 
   // ─── Prefetch-retry: mirrors the React Native implementation exactly ──────

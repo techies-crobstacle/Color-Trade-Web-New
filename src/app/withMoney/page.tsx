@@ -18,6 +18,15 @@ type BankDetails = {
   province: string;
 };
 
+type WalletDetails = {
+  balance: number;
+  maxWithdrawable: number;
+  withdrawalFee?: {
+    type: "fixed" | "percent";
+    value: number;
+  };
+};
+
 const EMPTY_BANK_DETAILS: BankDetails = {
   accountName: "",
   accountNumber: "",
@@ -44,6 +53,30 @@ const Page = () => {
   const [saveBankDetailsForFuture, setSaveBankDetailsForFuture] = useState(true);
   const [ifscLookupLoading, setIfscLookupLoading] = useState(false);
   const [ifscLookupMessage, setIfscLookupMessage] = useState("");
+  const [walletDetails, setWalletDetails] = useState<WalletDetails | null>(null);
+
+  const displayBalance = walletDetails?.balance ?? balance;
+  const maxWithdrawable = walletDetails?.maxWithdrawable ?? balance ?? 0;
+
+  const fetchWalletDetails = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const response = await fetch(`${API_BASE_URL}/api/wallet/balance`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json();
+      if (response.ok && result?.data) {
+        setWalletDetails({
+          balance: Number(result.data.balance || 0),
+          maxWithdrawable: Number(result.data.maxWithdrawable || 0),
+          withdrawalFee: result.data.withdrawalFee,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching wallet details:", error);
+    }
+  };
 
   useEffect(() => {
     setShowHeaderFooter(false);
@@ -82,6 +115,7 @@ const Page = () => {
     };
 
     fetchBankDetails();
+    fetchWalletDetails();
     return () => setShowHeaderFooter(true);
   }, [setShowHeaderFooter]);
 
@@ -147,6 +181,10 @@ const Page = () => {
       toast.error("Please enter your password.");
       return;
     }
+    if (Number(amount) > maxWithdrawable) {
+      toast.error(`Maximum withdrawable amount is ₹${maxWithdrawable.toFixed(2)} including withdrawal charges.`);
+      return;
+    }
 
     const activeBankDetails = useSavedBankDetails ? savedBankDetails : bankDetails;
 
@@ -201,6 +239,7 @@ const Page = () => {
           setUseSavedBankDetails(true);
         }
         refreshBalance();
+        fetchWalletDetails();
       } else {
         toast.error(`Withdrawal failed: ${result.message || result.msg || "Try again later"}`);
       }
@@ -213,78 +252,66 @@ const Page = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#242424]">
-      {/* Header */}
-      <div className="bg-[#333332] flex justify-between py-3 items-center px-4 shadow-md">
-        <Link href="/wallet" className="flex items-center justify-center w-7 h-7">
-          <Image
-            src="/back-white.png"
-            width={28}
-            height={28}
-            alt="Back"
-            className="w-7 h-7 object-contain"
-          />
-        </Link>
-        <h1 className="text-lg text-white font-semibold">Withdraw</h1>
-        {/* Spacer to keep title centered */}
-        <div className="w-7" />
+    <div className="min-h-screen bg-[#151515] text-white">
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#1f1f1f]/95 backdrop-blur">
+        <div className="relative px-4 py-4">
+          <Link href="/wallet" className="absolute left-4 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full bg-white/10 p-2">
+            <Image src="/back-white.png" width={18} height={18} alt="Back" />
+          </Link>
+          <div className="text-center">
+            <h1 className="text-lg font-bold">Withdraw Money</h1>
+            <p className="text-xs text-gray-400">Send wallet balance to your bank account</p>
+          </div>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="bg-[#242424] min-h-screen pb-6">
-
-        {/* Wallet Balance Card */}
-        <div className="relative mx-4 mt-3 rounded-xl shadow-md overflow-hidden">
-          {/* Full card image — chip and dots are part of the image itself */}
-          <Image
-            src="/bannerbg.png"
-            width={700}
-            height={420}
-            alt="Balance Card"
-            className="w-full h-auto block"
-            priority
-          />
-          {/* Text overlay — top-left */}
-          <div className="absolute top-0 left-0 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Image src="/walet.png" width={20} height={20} alt="Wallet" className="w-5 h-5 flex-shrink-0" />
-              <h1 className="text-white text-base font-medium whitespace-nowrap">Balance</h1>
+      <div className="px-4 py-5 pb-8">
+        <div className="rounded-3xl border border-[#d4a64a]/30 bg-gradient-to-br from-[#3a2c13] via-[#25211a] to-[#111] p-5 shadow-2xl">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm text-[#f5d57a]">Wallet Balance</p>
+              <h2 className="mt-2 text-4xl font-black">
+                ₹{displayBalance === null ? "..." : Number(displayBalance || 0).toFixed(2)}
+              </h2>
+              <p className="mt-2 text-xs text-gray-300">
+                Max withdrawable after charges: ₹{Number(maxWithdrawable || 0).toFixed(2)}
+              </p>
             </div>
-            <h1 className="text-white text-3xl font-bold whitespace-nowrap">
-              {balance === null ? "Loading..." : `₹ ${balance.toFixed(2)}`}
-            </h1>
+            <div className="rounded-2xl bg-white/10 p-3">
+              <Image src="/walet.png" width={34} height={34} alt="Wallet" />
+            </div>
           </div>
         </div>
 
         {/* Bank Details Section */}
-        <div className="bg-white/10 shadow-md rounded-lg p-4 mx-4 mt-4">
-          <h2 className="text-base text-white font-semibold flex items-center gap-2 mb-3">
-            <Image src="/selectr.png" width={20} height={20} alt="Bank Icon" className="w-5 h-5" />
-            Bank Details
-          </h2>
+        <div className="mt-5 rounded-3xl border border-white/10 bg-white/[0.07] p-4 shadow-xl">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold">Bank Details</h2>
+            <p className="text-xs text-gray-400">Choose a saved account or add a new one</p>
+          </div>
 
           {loadingBankDetails ? (
-            <p className="text-xs text-gray-200">Loading bank details...</p>
+            <p className="text-sm text-gray-300">Loading bank details...</p>
           ) : (
             <>
               {savedBankDetails && (
-                <div className="mb-4 rounded-lg border border-white/20 bg-black/20 p-3">
-                  <p className="text-xs text-gray-300 mb-1">Saved Account</p>
-                  <p className="text-sm text-white font-semibold">{savedBankDetails.accountName}</p>
-                  <p className="text-xs text-gray-200 mt-1">
+                <div className="mb-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
+                  <p className="text-xs text-emerald-200 mb-1">Saved Account</p>
+                  <p className="text-base text-white font-bold">{savedBankDetails.accountName}</p>
+                  <p className="text-xs text-gray-300 mt-1">
                     A/C ending {savedBankDetails.accountNumber.slice(-4)} | IFSC {savedBankDetails.ifscCode}
                   </p>
                   <div className="mt-3 flex gap-2">
                     <button
                       type="button"
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold ${useSavedBankDetails ? "bg-green-600 text-white" : "bg-white/10 text-gray-200"}`}
+                      className={`rounded-full px-4 py-2 text-xs font-bold ${useSavedBankDetails ? "bg-emerald-500 text-black" : "bg-white/10 text-gray-200"}`}
                       onClick={() => setUseSavedBankDetails(true)}
                     >
                       Use This Account
                     </button>
                     <button
                       type="button"
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold ${!useSavedBankDetails ? "bg-amber-500 text-black" : "bg-white/10 text-gray-200"}`}
+                      className={`rounded-full px-4 py-2 text-xs font-bold ${!useSavedBankDetails ? "bg-[#c4933f] text-black" : "bg-white/10 text-gray-200"}`}
                       onClick={() => setUseSavedBankDetails(false)}
                     >
                       Change Account
@@ -304,11 +331,11 @@ const Page = () => {
             { label: "Province / State", placeholder: "Enter province or state", key: "province", type: "text" },
                   ].map(({ label, placeholder, key, type, maxLength, uppercase }) => (
             <div className="mb-3" key={key}>
-              <label className="text-xs text-gray-100 mb-1 block">{label}</label>
+              <label className="text-xs text-gray-300 mb-1 block">{label}</label>
               <input
                 type={type}
                 placeholder={placeholder}
-                className={`bg-white/10 w-full outline-none text-white text-sm p-2 rounded-md ${uppercase ? "uppercase" : ""}`}
+                className={`w-full rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-[#c4933f] ${uppercase ? "uppercase" : ""}`}
                 value={bankDetails[key as keyof typeof bankDetails]}
                 maxLength={maxLength}
                 onChange={(e) =>
@@ -345,18 +372,19 @@ const Page = () => {
         </div>
 
         {/* Withdrawal Form */}
-        <div className="bg-white/10 shadow-md rounded-lg p-4 mx-4 mt-4">
-          <h2 className="text-base text-white font-semibold flex items-center gap-2">
-            <Image src="/selectr.png" width={20} height={20} alt="Withdraw Icon" className="w-5 h-5" />
-            Withdrawal Form
-          </h2>
+        <div className="mt-5 rounded-3xl border border-white/10 bg-white/[0.07] p-4 shadow-xl">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold">Withdrawal Amount</h2>
+            <p className="text-xs text-gray-400">Amount plus charge must fit your wallet balance</p>
+          </div>
 
-          <div className="flex items-center bg-white/10 rounded-md p-2 mt-3">
-            <FaRupeeSign className="text-green-600 mr-2 text-sm flex-shrink-0" />
+          <div className="flex items-center rounded-2xl border border-white/10 bg-black/25 p-3">
+            <FaRupeeSign className="text-[#f6d371] mr-2 text-base flex-shrink-0" />
             <input
               type="number"
               placeholder="Enter withdrawal amount"
-              className="bg-transparent w-full outline-none text-white text-sm"
+              max={maxWithdrawable}
+              className="bg-transparent w-full outline-none text-white text-xl font-bold placeholder:text-gray-600"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
@@ -367,9 +395,20 @@ const Page = () => {
               />
             )}
           </div>
+          <div className="mt-3 rounded-2xl bg-black/20 p-3 text-xs text-gray-300">
+            <p>Maximum withdrawable: ₹{Number(maxWithdrawable || 0).toFixed(2)}</p>
+            {walletDetails?.withdrawalFee && walletDetails.withdrawalFee.value > 0 && (
+              <p>
+                Withdrawal charge: {walletDetails.withdrawalFee.type === "percent"
+                  ? `${walletDetails.withdrawalFee.value}%`
+                  : `₹${walletDetails.withdrawalFee.value}`}
+                . Enter an amount within the maximum so balance covers amount + charge.
+              </p>
+            )}
+          </div>
 
-          <div className="flex items-center bg-white/10 rounded-md p-2 mt-3">
-            <FaLock className="text-green-600 mr-2 text-sm flex-shrink-0" />
+          <div className="flex items-center rounded-2xl border border-white/10 bg-black/25 p-3 mt-3">
+            <FaLock className="text-[#f6d371] mr-2 text-base flex-shrink-0" />
             <input
               type="password"
               placeholder="Enter login password"
@@ -380,7 +419,7 @@ const Page = () => {
           </div>
 
           <button
-            className="mt-4 w-full bg-gradient-to-b from-[#f9d45a] to-[#b07b1f] text-gray-700 font-semibold py-2.5 rounded-full hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="mt-4 w-full rounded-2xl bg-gradient-to-r from-[#f8d86a] to-[#b88527] px-4 py-3 font-black text-black shadow-lg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={handleWithdraw}
             disabled={loading}
           >
@@ -389,22 +428,15 @@ const Page = () => {
         </div>
 
         {/* Withdrawal Instructions */}
-        <div className="bg-white/10 rounded-xl mx-4 pb-5 my-4">
-          <div className="flex items-center p-3 gap-2">
-            <Image src="/selectr.png" width={24} height={24} alt="Instructions" className="w-6 h-6" />
-            <h1 className="text-base text-white font-semibold">Withdrawal Instruction</h1>
-          </div>
-          <div className="p-3 mx-2 rounded-xl">
-            <ul className="text-gray-400 text-xs font-semibold space-y-1">
-              <li>Withdrawal requests are processed within 24 hours.</li>
-              <li>Ensure your bank details are correct.</li>
-              <li>IFSC code must be exactly 11 characters.</li>
-              <li>Minimum withdrawal amount is ₹100.</li>
-              <li>Contact support if facing issues.</li>
-            </ul>
-          </div>
+        <div className="mt-5 rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+          <h3 className="font-bold">Withdrawal Instructions</h3>
+          <ul className="mt-3 space-y-2 text-sm text-gray-300">
+            <li>Withdrawal requests are usually processed within 24 hours.</li>
+            <li>Ensure account number, IFSC, and account holder name are correct.</li>
+            <li>Minimum withdrawal amount is ₹100.</li>
+            <li>Your wallet is debited immediately when the payout request is accepted.</li>
+          </ul>
         </div>
-
       </div>
     </div>
   );

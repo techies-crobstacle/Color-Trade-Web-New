@@ -27,6 +27,8 @@ interface Announcement {
   updatedBy?: string;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+
 const Announcement = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +75,7 @@ const Announcement = () => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `https://ctbackend.crobstacle.com/api/admin/announcements`,
+        `${API_BASE_URL}/api/admin/announcements`,
         {
           method: "GET",
           headers: {
@@ -106,8 +108,8 @@ const Announcement = () => {
     try {
       const token = localStorage.getItem("token");
       const url = editingId
-        ? `https://ctbackend.crobstacle.com/api/admin/announcements/${editingId}`
-        : `https://ctbackend.crobstacle.com/api/admin/announcements`;
+        ? `${API_BASE_URL}/api/admin/announcements/${editingId}`
+        : `${API_BASE_URL}/api/admin/announcements`;
 
       // Prepare body - only include fields that have values
       const body: any = {
@@ -193,7 +195,7 @@ const Announcement = () => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `https://ctbackend.crobstacle.com/api/admin/announcements/${id}`,
+        `${API_BASE_URL}/api/admin/announcements/${id}`,
         {
           method: "DELETE",
           headers: {
@@ -251,7 +253,7 @@ const Announcement = () => {
       const endpoint = announcement.isActive ? "deactivate" : "activate";
 
       const response = await fetch(
-        `https://ctbackend.crobstacle.com/api/admin/announcements/${announcement._id}/${endpoint}`,
+        `${API_BASE_URL}/api/admin/announcements/${announcement._id}/${endpoint}`,
         {
           method: "PATCH",
           headers: {
