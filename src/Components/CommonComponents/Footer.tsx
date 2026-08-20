@@ -18,7 +18,7 @@ const Footer = () => {
       <div className=" flex justify-center py-2 sm:py-2">
         {/* Download link */}
         <Link
-          href="https://diuvin.com/app.apk"
+          href="/app.apk"
           className="basis-1/5 flex flex-col items-center justify-center"
         >
           <Image

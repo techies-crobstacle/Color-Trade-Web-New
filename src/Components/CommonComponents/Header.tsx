@@ -37,7 +37,7 @@ const Header = () => {
           </>
         ) : (
           <a
-            href="https://diuvin.com/app.apk"
+            href="/app.apk"
             target="_blank"
             rel="noopener noreferrer"
             download
