@@ -105,7 +105,7 @@ export default function AccountPage() {
     { label: "About Us", path: "/about", icon: "/about.png" },
     { label: "Support", path: "/support", icon: "/ticket.png" },
     { label: "My Referral", path: "/referral", icon: "/mreferral.png" },
-    { label: "App Download", path: "https://diuvin.com/app.apk", icon: "/app.png" },
+    { label: "App Download", path: "https://www.realdaddygame.com/app.apk", icon: "/app.png" },
     { label: "Join Telegram Channel", path: "/profile", icon: "/app.png" },
   ];
 
