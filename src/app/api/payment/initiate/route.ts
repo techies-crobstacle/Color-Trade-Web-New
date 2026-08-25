@@ -147,7 +147,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Invalid amount' }, { status: 400 });
     }
 
-    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com'}/api/wallet/deposit/initiate`, {
+    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.realdaddygame.com'}/api/wallet/deposit/initiate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

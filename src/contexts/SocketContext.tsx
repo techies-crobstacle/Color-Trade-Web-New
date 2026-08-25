@@ -76,7 +76,7 @@ function periodToKey(period: string): string | null {
   return null;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com";
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -223,7 +223,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
 
     const SOCKET_URL =
-      process.env.NEXT_PUBLIC_SOCKET_URL || "https://ctbackend.crobstacle.com";
+      process.env.NEXT_PUBLIC_SOCKET_URL || "https://ctbackend.realdaddygame.com";
 
     // Cleanup previous socket if exists
     if (socket) {

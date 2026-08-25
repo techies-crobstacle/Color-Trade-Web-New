@@ -88,7 +88,7 @@
 //       const token = process.env.BACKEND_API_TOKEN;
       
 //       if (token) {
-//         const walletResponse = await fetch('https://ctbackend.crobstacle.com/api/wallet/credit', {
+//         const walletResponse = await fetch('https://ctbackend.realdaddygame.com/api/wallet/credit', {
 //           method: 'POST',
 //           headers: {
 //             'Content-Type': 'application/json',
@@ -312,7 +312,7 @@ export async function POST(req: NextRequest) {
     console.log('Calling backend deposit API...');
 
     try {
-      const depositResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com'}/api/wallet/deposit`, {
+      const depositResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.realdaddygame.com'}/api/wallet/deposit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

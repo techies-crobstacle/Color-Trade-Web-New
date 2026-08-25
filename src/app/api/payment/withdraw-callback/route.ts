@@ -50,7 +50,7 @@
 //       // Update withdrawal status in database
 //       try {
 //         const token = process.env.BACKEND_API_TOKEN;
-//         await fetch('https://ctbackend.crobstacle.com/api/withdrawals/update', {
+//         await fetch('https://ctbackend.realdaddygame.com/api/withdrawals/update', {
 //           method: 'PUT',
 //           headers: {
 //             'Content-Type': 'application/json',
@@ -74,7 +74,7 @@
 //       // Update as failed and refund
 //       try {
 //         const token = process.env.BACKEND_API_TOKEN;
-//         await fetch('https://ctbackend.crobstacle.com/api/withdrawals/update', {
+//         await fetch('https://ctbackend.realdaddygame.com/api/withdrawals/update', {
 //           method: 'PUT',
 //           headers: {
 //             'Content-Type': 'application/json',

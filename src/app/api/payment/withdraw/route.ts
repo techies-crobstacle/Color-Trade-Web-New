@@ -40,7 +40,7 @@
 
 //     // Verify password with your backend
 //     const token = request.headers.get('authorization')?.replace('Bearer ', '');
-//     const passwordCheck = await fetch('https://ctbackend.crobstacle.com/api/auth/verify-password', {
+//     const passwordCheck = await fetch('https://ctbackend.realdaddygame.com/api/auth/verify-password', {
 //       method: 'POST',
 //       headers: {
 //         'Content-Type': 'application/json',
@@ -93,7 +93,7 @@
 //     if (result.status === 'success') {
 //       // Save withdrawal request to database
 //       try {
-//         await fetch('https://ctbackend.crobstacle.com/api/withdrawals/create', {
+//         await fetch('https://ctbackend.realdaddygame.com/api/withdrawals/create', {
 //           method: 'POST',
 //           headers: {
 //             'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Invalid amount' }, { status: 400 });
     }
 
-    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com'}/api/wallet/withdraw/initiate`, {
+    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.realdaddygame.com'}/api/wallet/withdraw/initiate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

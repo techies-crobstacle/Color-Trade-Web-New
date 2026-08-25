@@ -1,6 +1,6 @@
 # Complete API Reference (Requested Format)
 
-Base URL: https://ctbackend.crobstacle.com
+Base URL: https://ctbackend.realdaddygame.com
 
 ## 1. Auth APIs
 

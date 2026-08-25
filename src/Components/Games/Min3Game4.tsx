@@ -35,7 +35,7 @@
 
 // const ROUND_DURATION = 180;
 // const API_BASE_URL =
-//   process.env.NEXT_PUBLIC_API_BASE_URL || "https://ctbackend.crobstacle.com";
+//   process.env.NEXT_PUBLIC_API_BASE_URL || "https://ctbackend.realdaddygame.com";
 
 // function extractGamesFromHistoryPayload(payload: unknown): GameData[] {
 //   if (!payload || typeof payload !== "object") return [];

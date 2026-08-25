@@ -15,7 +15,7 @@ export default function WithHistory() {
   const [transactions, setTransactions] = useState<MoneyTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com") + "/api/wallet/transactions";
+  const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com") + "/api/wallet/transactions";
 
   useEffect(() => {
     const fetchTransactions = async () => {

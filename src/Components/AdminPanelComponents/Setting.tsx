@@ -47,7 +47,7 @@ interface AffiliateSettings {
   updatedBy?: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.realdaddygame.com';
 
 const normalizeSettingsPayload = (raw: any): AffiliateSettings | null => {
   if (!raw || typeof raw !== 'object') return null;

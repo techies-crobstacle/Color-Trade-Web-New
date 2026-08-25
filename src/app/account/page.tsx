@@ -37,7 +37,7 @@ export default function AccountPage() {
           return;
         }
 
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com";
         const res = await fetch(`${API_BASE}/api/users/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,

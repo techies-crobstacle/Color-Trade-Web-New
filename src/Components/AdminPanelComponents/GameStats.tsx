@@ -79,7 +79,7 @@ type GamePeriodDetailResponse = {
   };
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.realdaddygame.com';
 
 const DURATION_THEME: Record<'1m' | '3m' | '5m', {
   label: string;
@@ -587,7 +587,7 @@ export default function GameStats({ token: propToken }: { token?: string }) {
     }
     setRefreshing(true);
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com';
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.realdaddygame.com';
       const params = new URLSearchParams({
         duration: opts.duration,
         skip: String(opts.skip),
@@ -946,7 +946,7 @@ export default function GameStats({ token: propToken }: { token?: string }) {
 
     setSettingWinnerTarget(period);
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com';
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.realdaddygame.com';
       const res = await fetch(`${API_BASE_URL}/api/admin/winner`, {
         method: 'POST',
         headers: {

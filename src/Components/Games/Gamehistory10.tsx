@@ -44,7 +44,7 @@
 // //   //       setError(null);
 
 // //   //       const response = await fetch(
-// //   //         "https://ctbackend.crobstacle.com/api/game/history",
+// //   //         "https://ctbackend.realdaddygame.com/api/game/history",
 // //   //         {
 // //   //           headers: {
 // //   //             Authorization: `Bearer ${token}`,
@@ -113,7 +113,7 @@
 // //       setError(null);
 
 // //       const response = await fetch(
-// //         "https://ctbackend.crobstacle.com/api/game/history",
+// //         "https://ctbackend.realdaddygame.com/api/game/history",
 // //         {
 // //           headers: {
 // //             Authorization: `Bearer ${token}`,
@@ -271,7 +271,7 @@
 // };
 
 // const API_BASE =
-//   process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+//   process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com";
 
 // export default function HistoryTable() {
 //   const [data, setData] = useState<HistoryRow[]>([]);

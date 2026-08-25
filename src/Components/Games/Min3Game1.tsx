@@ -33,7 +33,7 @@ interface GameData {
 
 const ROUND_DURATION = 60;
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "https://ctbackend.crobstacle.com";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://ctbackend.realdaddygame.com";
 
 function buildFallbackRound(): GameData {
   const now = new Date();

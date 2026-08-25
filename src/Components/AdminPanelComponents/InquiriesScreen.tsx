@@ -56,7 +56,7 @@ export default function InquiriesTable() {
   const [availableQueryTypes, setAvailableQueryTypes] = useState<string[]>([]);
 
   // API Configuration
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com";
   const API_ENDPOINT = `${API_BASE_URL}/api/queries/all`;
 
   // Debounce search input

@@ -27,7 +27,7 @@ interface Announcement {
   updatedBy?: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com";
 
 const Announcement = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);

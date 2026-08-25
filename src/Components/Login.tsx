@@ -35,7 +35,7 @@ export default function Login() {
     };
 
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com";
       const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: {

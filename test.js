@@ -4,7 +4,7 @@ const { io } = require("socket.io-client");
 const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YTVkODA1NGM4OWQ0ZmYzZGRiMjE3ZiIsIm5hbWUiOiJHYXVyYXYiLCJudW1iZXIiOiI3OTA2Mjg3NzAxIiwiaWF0IjoxNzYwNTA4OTg1LCJleHAiOjE3NjA1OTUzODV9.vV7IIMeuBD7Rd_1WWxcEoU4tFOMB8OYx9-KEGMCccuI";
 // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YmViZGRmMWZkNzM4MGUxYjkxNDkyYiIsIm5hbWUiOiJHYXVyYXYiLCJudW1iZXIiOiI3OTA2Mjg3NzAzIiwiaWF0IjoxNzU3MzM1Nzg0LCJleHAiOjE3NTc0MjIxODR9.jjhLcbDvCa1mMB3_cSrN0VFBSvuv8bg6RwgjpC6Zpzg";
 
-const SOCKET_BASE = process.env.NEXT_PUBLIC_SOCKET_URL || "https://ctbackend.crobstacle.com";
+const SOCKET_BASE = process.env.NEXT_PUBLIC_SOCKET_URL || "https://ctbackend.realdaddygame.com";
 const socket = io(SOCKET_BASE, {
   transports: ["websocket"],
   auth: { token },

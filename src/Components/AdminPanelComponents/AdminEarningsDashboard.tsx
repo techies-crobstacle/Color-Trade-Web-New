@@ -59,7 +59,7 @@ type FiscalYearRange = {
   end: string;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.realdaddygame.com';
 
 const formatMoney = (value: number) =>
   `₹${Number(value || 0).toLocaleString('en-IN', {

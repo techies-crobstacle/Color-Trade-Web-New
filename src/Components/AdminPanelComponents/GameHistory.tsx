@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Clock, Search, TrendingUp, DollarSign, Activity, X, Eye } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com";
 
 interface GameResult {
   number: number | null;

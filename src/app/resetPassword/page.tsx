@@ -31,7 +31,7 @@
 //     }
 
 //     try {
-//       const response = await fetch("https://ctbackend.crobstacle.com/api/auth/forget-password", {
+//       const response = await fetch("https://ctbackend.realdaddygame.com/api/auth/forget-password", {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -152,7 +152,7 @@ const ContinueScreen = () => {
     setLoading(true);
 
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com";
       const response = await fetch(`${API_BASE}/api/auth/forget-password`, {
         method: "POST",
         headers: {

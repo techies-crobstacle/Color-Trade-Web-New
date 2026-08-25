@@ -36,7 +36,7 @@ const EMPTY_BANK_DETAILS: BankDetails = {
   province: "",
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.crobstacle.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ctbackend.realdaddygame.com";
 
 const Page = () => {
   const { setShowHeaderFooter } = useLayout();

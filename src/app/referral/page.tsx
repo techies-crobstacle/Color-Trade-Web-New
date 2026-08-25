@@ -27,7 +27,7 @@ const ReferralPage = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.crobstacle.com';
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://ctbackend.realdaddygame.com';
       const res = await fetch(`${API_BASE}/api/affiliate/my-referrals`, {
         headers: {
           Authorization: `Bearer ${token}`,
